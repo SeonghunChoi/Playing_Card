@@ -1,11 +1,10 @@
-﻿using PlayingCard.GamePlay.Configuration;
-using PlayingCard.GamePlay.PlayModels;
+﻿using MessagePipe;
+using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.UI;
-using PlayingCard.Utilities;
 using PlayingCard.Utilities.UI;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-using VContainer;
 
 namespace PlayingCard.GamePlay.GameState
 {
@@ -20,16 +19,8 @@ namespace PlayingCard.GamePlay.GameState
         [SerializeField]
         Button buttonStart;
 
-        [Inject]
-        GameManager gameManager;
-        [Inject]
-        PlayTable table;
-
-        protected override void Configure(IContainerBuilder builder)
-        {
-            base.Configure(builder);
-
-        }
+        IGameManager gameManager;
+        private IDisposable selectGameDisposable;
 
         protected override void Start()
         {
@@ -37,30 +28,23 @@ namespace PlayingCard.GamePlay.GameState
 
             buttonExit.AddOnClickEvent(GameQuit);
             buttonStart.AddOnClickEvent(GameStart);
-
-            gameManager.onGameChanged += GameChanged;
         }
 
-        protected override void OnDestroy()
+        public void Set(IGameManager gameManager, ISubscriber<SelectGameMessage> selectGameSubscriber)
         {
-            base.OnDestroy();
-
-            gameManager.onGameChanged -= GameChanged;
+            this.gameManager = gameManager;
+            selectGameDisposable = selectGameSubscriber.Subscribe(SelectGame);
         }
 
-        void GameChanged(Game newGame)
+        void SelectGame(SelectGameMessage message)
         {
-            bool isEmpty = newGame == null;
+            bool isEmpty = message.game == null;
             buttonStart.interactable = !isEmpty;
         }
 
         void GameStart()
         {
-            if (gameManager.Game != null)
-            {
-                table.SetGame(gameManager.Game);
-                SceneLoaderWarpper.Instance.LoadScene("GameRoom");
-            }
+            gameManager.StartGame();
         }
 
         void GameQuit()

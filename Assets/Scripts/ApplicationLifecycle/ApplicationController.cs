@@ -1,5 +1,9 @@
+using MessagePipe;
 using PlayingCard.GamePlay;
+using PlayingCard.GamePlay.Configuration;
+using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.PlayModels;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
@@ -13,37 +17,47 @@ namespace PlayingCard.ApplicationLifecycle
     /// </summary>
     public class ApplicationController : LifetimeScope
     {
-        [SerializeField]
-        GameManager GameManager;
+        [SerializeField] 
+        List<Game> GameList;
 
         public string startSceneName = "MainMenu";
+
+        private ISubscriber<QuitGameMessage> quitGameSubscriber;
+
+        private IGameManager gameManager;
+
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
 
-            builder.RegisterComponent(GameManager);
+            var options = builder.RegisterMessagePipe();
+            builder.RegisterBuildCallback(c => GlobalMessagePipe.SetProvider(c.AsServiceProvider()));
+            builder.RegisterMessageBroker<QuitGameMessage>(options);
+            builder.RegisterMessageBroker<SelectGameMessage>(options);
+
+            builder.RegisterInstance(GameList);
+            builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<PlayTable>(Lifetime.Singleton);
         }
 
         private void Start()
         {
             DontDestroyOnLoad(gameObject);
-            DontDestroyOnLoad(GameManager.gameObject);
             Application.targetFrameRate = 120;
-            GameManager.onGameQuit += QuitGame;
+
+            var disposableBag = DisposableBag.CreateBuilder();
+            quitGameSubscriber = Container.Resolve<ISubscriber<QuitGameMessage>>();
+            quitGameSubscriber.Subscribe(x => QuitGame(x)).AddTo(disposableBag);
+
+            gameManager = Container.Resolve<IGameManager>();
 
             SceneManager.LoadScene(startSceneName);
         }
 
-        protected override void OnDestroy()
+        private void QuitGame(QuitGameMessage message)
         {
-            base.OnDestroy();
+            gameManager.Dispose();
 
-            GameManager.onGameQuit -= QuitGame;
-        }
-
-        private void QuitGame()
-        {
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

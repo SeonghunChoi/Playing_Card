@@ -1,34 +1,64 @@
-﻿using PlayingCard.GamePlay.Configuration;
+﻿using MessagePipe;
+using PlayingCard.GamePlay.Configuration;
+using PlayingCard.GamePlay.Message;
+using PlayingCard.GamePlay.PlayModels;
+using PlayingCard.Utilities;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
 
 namespace PlayingCard.GamePlay
 {
+    public interface IGameManager : IDisposable
+    {
+        void StartGame();
+        void StopGame();
+        void QuitGame();
+    }
+
     [Serializable]
-    public class GameManager : MonoBehaviour
+    public class GameManager : IGameManager
     {
         public Game Game { get; private set; }
-        public List<Game> GameList;
 
-        public event UnityAction<Game> onGameChanged;
-        public event Action onGameQuit;
+        private readonly PlayTable table;
 
-        public GameManager(List<Game> games)
+        private readonly IPublisher<QuitGameMessage> quitGamePublisher;
+        private readonly IDisposable selectGameDisposable;
+
+        public GameManager(
+            PlayTable table,
+            IPublisher<QuitGameMessage> quitGamePublisher, 
+            ISubscriber<SelectGameMessage> selectGameSubscriber)
         {
-            GameList = games;
+            this.table = table;
+            this.quitGamePublisher = quitGamePublisher;
+            selectGameDisposable = selectGameSubscriber.Subscribe(SetGame);
         }
 
-        public void SetGame(Game game)
+        void SetGame(SelectGameMessage message)
         {
-            this.Game = game;
-            onGameChanged?.Invoke(game);
+            this.Game = message.game;
+        }
+
+        public void StartGame()
+        {
+            table.SetGame(Game);
+            SceneLoaderWarpper.Instance.LoadScene("GameRoom");
+        }
+
+        public void StopGame()
+        {
+            this.Game = null;
         }
 
         public void QuitGame()
         {
-            onGameQuit?.Invoke();
+            this.Game = null;
+            quitGamePublisher.Publish(new QuitGameMessage());
+        }
+
+        public void Dispose()
+        {
+            selectGameDisposable?.Dispose();
         }
     }
 }

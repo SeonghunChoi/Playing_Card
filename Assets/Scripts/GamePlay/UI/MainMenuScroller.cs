@@ -1,6 +1,7 @@
 ﻿using EnhancedUI.EnhancedScroller;
+using MessagePipe;
 using PlayingCard.GamePlay.Configuration;
-using PlayingCard.GamePlay.PlayModels;
+using PlayingCard.GamePlay.Message;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
@@ -17,9 +18,9 @@ namespace PlayingCard.GamePlay.UI
         [SerializeField] 
         MainMenuCellView cellViewPrefab;
 
-        GameManager gameManager;
-
         List<Game> dataList;
+
+        private IPublisher<SelectGameMessage> selectGamePublisher;
 
         private void Start()
         {
@@ -27,11 +28,12 @@ namespace PlayingCard.GamePlay.UI
         }
 
         [Inject]
-        public void Set(GameManager gameManager)
+        public void Set(
+            List<Game> games, 
+            IPublisher<SelectGameMessage> selectGamePublisher)
         {
-            this.gameManager = gameManager;
-
-            dataList = gameManager.GameList;
+            dataList = games;
+            this.selectGamePublisher = selectGamePublisher;
 
             scroller.ReloadData();
         }
@@ -57,7 +59,9 @@ namespace PlayingCard.GamePlay.UI
 
         void OnClickCell(Game game)
         {
-            gameManager.SetGame(game);
+            var message = new SelectGameMessage();
+            message.game = game;
+            selectGamePublisher.Publish(message);
         }
     }
 }

@@ -480,7 +480,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.GameState.MainMenuStateBehaviour
   parentReference:
-    TypeName: 
+    TypeName: PlayingCard.ApplicationLifecycle.ApplicationController
   autoRun: 1
   autoInjectGameObjects:
   - {fileID: 612946394}

@@ -22,5 +22,12 @@ namespace PlayingCard.GamePlay.GameState
 
         [Inject]
         PlayTable table;
+
+        protected override void Start()
+        {
+            base.Start();
+
+            
+        }
     }
 }
