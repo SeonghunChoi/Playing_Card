@@ -1,9 +1,11 @@
 ﻿using MessagePipe;
 using PlayingCard.GamePlay.Configuration;
+using PlayingCard.GamePlay.Configuration.Define;
 using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.PlayModels;
 using PlayingCard.Utilities;
 using System;
+using VContainer;
 
 namespace PlayingCard.GamePlay
 {
@@ -19,17 +21,17 @@ namespace PlayingCard.GamePlay
     {
         public Game Game { get; private set; }
 
-        private readonly PlayTable table;
-
+        private readonly IPlayTable playTable;
         private readonly IPublisher<QuitGameMessage> quitGamePublisher;
         private readonly IDisposable selectGameDisposable;
 
+        [Inject]
         public GameManager(
-            PlayTable table,
-            IPublisher<QuitGameMessage> quitGamePublisher, 
+            IPlayTable playTable,
+            IPublisher<QuitGameMessage> quitGamePublisher,
             ISubscriber<SelectGameMessage> selectGameSubscriber)
         {
-            this.table = table;
+            this.playTable = playTable;
             this.quitGamePublisher = quitGamePublisher;
             selectGameDisposable = selectGameSubscriber.Subscribe(SetGame);
         }
@@ -41,8 +43,10 @@ namespace PlayingCard.GamePlay
 
         public void StartGame()
         {
-            table.SetGame(Game);
-            SceneLoaderWarpper.Instance.LoadScene("GameRoom");
+            if (Game == null) return;
+
+            playTable.InitGame(Game);
+            SceneLoaderWarpper.Instance.LoadScene(DefineScene.GAME_ROOM);
         }
 
         public void StopGame()

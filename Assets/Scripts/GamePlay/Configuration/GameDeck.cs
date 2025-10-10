@@ -8,9 +8,9 @@ namespace PlayingCard.GamePlay.Configuration
     /// 게임에서 사용할 덱 정보
     /// </summary>
     [CreateAssetMenu(menuName = "GameData/Deck", order = 2)]
-    public class Deck : ScriptableObject
+    public class GameDeck : ScriptableObject
     {
         public int WildCardCount = 0;
-        public List<Suits> SuitList;
+        public List<GameSuits> SuitList;
     }
 }

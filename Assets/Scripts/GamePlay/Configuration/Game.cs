@@ -9,9 +9,7 @@ namespace PlayingCard.GamePlay.Configuration
         [MinValue(1)]
         public int GameId = 1;
         public string GameName;
-        [MinValue(0)]
-        [MaxValue(2)]
-        public Deck Deck;
+        public GameDeck Deck;
         public GameRule Rule;
     }
 }

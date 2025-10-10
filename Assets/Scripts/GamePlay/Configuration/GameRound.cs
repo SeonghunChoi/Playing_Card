@@ -8,7 +8,7 @@ namespace PlayingCard.GamePlay.Configuration
     public enum DealTarget
     {
         Player,
-        Share
+        Table
     }
 
     /// <summary>

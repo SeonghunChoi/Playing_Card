@@ -59,9 +59,7 @@ namespace PlayingCard.GamePlay.UI
 
         void OnClickCell(Game game)
         {
-            var message = new SelectGameMessage();
-            message.game = game;
-            selectGamePublisher.Publish(message);
+            selectGamePublisher.Publish(new SelectGameMessage(game));
         }
     }
 }

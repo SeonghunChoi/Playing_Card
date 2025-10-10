@@ -1,6 +1,5 @@
-﻿using PlayingCard.GamePlay.PlayModels;
-using TMPro;
-using UnityEngine;
+﻿using MessagePipe;
+using PlayingCard.GamePlay.Message;
 using VContainer;
 
 namespace PlayingCard.GamePlay.GameState
@@ -9,25 +8,19 @@ namespace PlayingCard.GamePlay.GameState
     {
         public override GameState ActiveState => GameState.GameRoom;
 
-        [SerializeField]
-        TextMeshProUGUI textPlayerId;
-        [SerializeField]
-        TextMeshProUGUI textMoney;
-        [SerializeField]
-        TextMeshProUGUI textBet;
-        [SerializeField]
-        TextMeshProUGUI textPot;
-        [SerializeField]
-        TextMeshProUGUI textRound;
+        private IPublisher<StartGameMessage> startGamePublisher;
 
-        [Inject]
-        PlayTable table;
+        protected override void Configure(IContainerBuilder builder)
+        {
+            base.Configure(builder);
+        }
 
         protected override void Start()
         {
             base.Start();
 
-            
+            startGamePublisher = Container.Resolve<IPublisher<StartGameMessage>>();
+            startGamePublisher.Publish(new StartGameMessage());
         }
     }
 }

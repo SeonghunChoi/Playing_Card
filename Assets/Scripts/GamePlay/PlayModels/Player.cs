@@ -28,12 +28,8 @@ namespace PlayingCard.GamePlay.PlayModels
     {
         public int Id;
         public ulong Money;
-
-        public Player(int id, ulong money)
-        {
-            Id = id;
-            Money = money;
-        }
+        public ulong Bet;
+        public PlayerState State { get; private set; }
 
         //내가 가진 모든 카드
         public List<Card> AllCards
@@ -48,15 +44,79 @@ namespace PlayingCard.GamePlay.PlayModels
             }
         }
 
-        //내가 가지고 있는 카드 중 비공개 카드
-        public List<Card> Hands;
-        //내가 가지고 있는 카드 중 공개한 카드
-        public List<Card> Board;
+        //player가 가지고 있는 카드 중 비공개 카드
+        public List<Card> Hands = new List<Card>();
+        //player가 가지고 있는 카드 중 공개한 카드
+        public List<Card> Board = new List<Card>();
 
-        public void ReceiveCard(List<Card> cards, bool isHands = true)
+
+        public Player(int id, ulong money)
         {
-            if (isHands) Hands.AddRange(cards);
-            else Board.AddRange(cards);
+            Id = id;
+            Money = money;
+
+            SetState(PlayerState.Waiting);
+        }
+
+        public void SetState(PlayerState state)
+        {
+            if (Money <= 0)
+            {
+                State = PlayerState.Out;
+                return;
+            }
+
+            State = state;
+        }
+
+        public void ReceiveCard(Card card)
+        {
+            if (card.IsFaceUp) Hands.Add(card);
+            else Board.Add(card);
+        }
+    }
+
+    public static class PlayerExtands
+    {
+        public static bool IsPlayable(this PlayerState state)
+        {
+            bool result = false;
+
+            switch (state)
+            {
+                case PlayerState.Waiting:
+                case PlayerState.Playing:
+                case PlayerState.AllIn:
+                case PlayerState.Checked:
+                case PlayerState.Called:
+                case PlayerState.Raised:
+                    result = true;
+                    break;
+                default:
+                    break;
+            }
+
+            return result;
+        }
+
+        public static bool IsBetable(this PlayerState state)
+        {
+            bool result = false;
+
+            switch (state)
+            {
+                case PlayerState.Playing:
+                case PlayerState.AllIn:
+                case PlayerState.Checked:
+                case PlayerState.Called:
+                case PlayerState.Raised:
+                    result = true;
+                    break;
+                default:
+                    break;
+            }
+
+            return result;
         }
     }
 }

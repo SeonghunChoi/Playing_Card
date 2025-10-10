@@ -1,6 +1,7 @@
 using MessagePipe;
 using PlayingCard.GamePlay;
 using PlayingCard.GamePlay.Configuration;
+using PlayingCard.GamePlay.Configuration.Define;
 using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.PlayModels;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace PlayingCard.ApplicationLifecycle
         [SerializeField] 
         List<Game> GameList;
 
-        public string startSceneName = "MainMenu";
+        public string startSceneName = DefineScene.MAIN_MENU;
 
         private ISubscriber<QuitGameMessage> quitGameSubscriber;
 
@@ -34,10 +35,14 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterBuildCallback(c => GlobalMessagePipe.SetProvider(c.AsServiceProvider()));
             builder.RegisterMessageBroker<QuitGameMessage>(options);
             builder.RegisterMessageBroker<SelectGameMessage>(options);
+            builder.RegisterMessageBroker<StartGameMessage>(options);
+            builder.RegisterMessageBroker<EndGameMessage>(options);
+            builder.RegisterMessageBroker<TrunStartMessage>(options);
+            builder.RegisterMessageBroker<TurnActionMessage>(options);
 
             builder.RegisterInstance(GameList);
             builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
-            builder.Register<PlayTable>(Lifetime.Singleton);
+            builder.Register<PlayTable>(Lifetime.Singleton).AsImplementedInterfaces();
         }
 
         private void Start()

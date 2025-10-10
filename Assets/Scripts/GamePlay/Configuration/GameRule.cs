@@ -15,6 +15,7 @@ namespace PlayingCard.GamePlay.Configuration
         public int MinPlayer = 1;
         public int MaxPlayer = 2;
         public int InitialCardsCount = 0;
+        public ulong MinRaise = 1;
         public List<GameRound> Rounds;
     }
 }

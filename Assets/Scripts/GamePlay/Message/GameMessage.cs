@@ -1,18 +1,43 @@
-﻿using MessagePipe;
-using PlayingCard.GamePlay.Configuration;
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using PlayingCard.GamePlay.Configuration;
+using PlayingCard.GamePlay.PlayModels;
 
 namespace PlayingCard.GamePlay.Message
 {
 	public struct QuitGameMessage { }
 
-	public struct StartGameMessage { }
+    public struct SelectGameMessage
+    {
+        public Game game;
 
-	public struct SelectGameMessage
-	{
-		public Game game;
-	}
+        public SelectGameMessage(Game game)
+        {
+            this.game = game;
+        }
+    }
+
+    public struct StartGameMessage { }
+
+	public struct EndGameMessage { }
+
+    public struct ExitGameMessage { }
+
+    public struct TrunStartMessage
+    {
+        public Player player;
+
+        public TrunStartMessage(Player player)
+        {
+            this.player = player;
+        }
+    }
+
+    public struct TurnActionMessage
+    {
+		public Player player;
+
+        public TurnActionMessage(Player player)
+        {
+            this.player = player;
+        }
+    }
 }

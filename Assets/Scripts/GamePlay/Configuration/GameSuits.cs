@@ -5,7 +5,7 @@ using UnityEngine;
 namespace PlayingCard.GamePlay.Configuration
 {
     [CreateAssetMenu(menuName = "GameData/Suit", order = 3)]
-    public class Suits : ScriptableObject
+    public class GameSuits : ScriptableObject
     {
         public Suit SuitType;
         [MinValue(1)]

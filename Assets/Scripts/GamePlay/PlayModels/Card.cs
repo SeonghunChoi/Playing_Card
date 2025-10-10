@@ -21,18 +21,27 @@ namespace PlayingCard.GamePlay.PlayModels
 
     public struct Card
     {
-        public Card(Suit suit,  Rank rank, bool isWild = false)
-        {
-            Suit = suit;
-            Rank = rank;
-
-            IsWild = isWild;
-        }
-
         public Suit Suit { get; private set; }
         public Rank Rank { get; private set; }
         
         public bool IsWild { get; private set; }
+
+        public bool IsFaceUp { get; private set; }
+
+        public Card(Suit suit, Rank rank, bool isFaceUp, bool isWild = false)
+        {
+            Suit = suit;
+            Rank = rank;
+
+            IsFaceUp = isFaceUp;
+
+            IsWild = isWild;
+        }
+
+        public void Flip()
+        {
+            IsFaceUp = !IsFaceUp;
+        }
 
         public bool IsSameRank(Rank rank)
         {
