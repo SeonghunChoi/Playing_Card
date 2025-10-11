@@ -20,6 +20,10 @@ namespace PlayingCard.GamePlay
         FiveOfAKind,
     }
 
+    /// <summary>
+    /// 플레이어가 가진 Hands를 기반으로 최고 패를 찾아낸다.
+    /// Kickers 를 구한다.
+    /// </summary>
     public class HandRankingManager
     {
         //public HandRankingManager(GameRule rule)
@@ -143,6 +147,9 @@ namespace PlayingCard.GamePlay
         }
     }
 
+    /// <summary>
+    /// 핸드 랭크 및 Kickers 정보를 처리한다.
+    /// </summary>
     public class HandRanking
     {
         public HandRanking(HandRank bestHandRank, List<Rank> kickers)

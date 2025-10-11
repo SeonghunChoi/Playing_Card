@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using PlayingCard.GamePlay.PlayModels;
 using PlayingCard.Utilities.UI;
-using System;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -9,6 +8,9 @@ using UnityEngine.UI;
 
 namespace PlayingCard.GamePlay.UI
 {
+    /// <summary>
+    /// 배팅 Chip 개수 확정 팝업 UI
+    /// </summary>
     public class UIConfirmBetMoney : MonoBehaviour
     {
         [SerializeField]
@@ -30,8 +32,17 @@ namespace PlayingCard.GamePlay.UI
 
         TaskCompletionSource<ulong> tcs;
 
+        /// <summary>
+        /// Betting Chip 최소 개수
+        /// </summary>
         ulong minValue;
+        /// <summary>
+        /// Betting Chip 최대 개수
+        /// </summary>
         ulong maxValue;
+        /// <summary>
+        /// Betting Chip 개수
+        /// </summary>
         ulong bet;
 
         private void Start()
@@ -57,14 +68,22 @@ namespace PlayingCard.GamePlay.UI
             panel.blocksRaycasts = false;
         }
 
-        public async UniTask<ulong> GetBetMoney(Player player, Betting betting, ulong lastMaxBet, ulong minRaise)
+        /// <summary>
+        /// Chip 개수 받기
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="betting"></param>
+        /// <param name="lastMaxBet"></param>
+        /// <param name="minRaise"></param>
+        /// <returns></returns>
+        public async UniTask<ulong> GetBetChips(Player player, Betting betting, ulong lastMaxBet, ulong minRaise)
         {
             textTitle.text = betting.ToString().ToUpper();
 
             ulong callAmount = lastMaxBet - player.Bet;
 
             minValue = callAmount;
-            maxValue = player.Money;
+            maxValue = player.Chips;
             bet = minValue;
 
             SetTextMoney(minValue, maxValue);

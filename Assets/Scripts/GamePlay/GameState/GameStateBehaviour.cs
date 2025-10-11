@@ -9,6 +9,9 @@ namespace PlayingCard.GamePlay.GameState
         GameRoom
     }
 
+    /// <summary>
+    /// 각 Scene 별 상태에 따른 LifetimeScope를 지정
+    /// </summary>
     public abstract class GameStateBehaviour : LifetimeScope
     {
         public virtual bool Persists

@@ -422,8 +422,8 @@ namespace PlayingCard.GamePlay.PlayModels
             Debug.Log($"split:{split}, remainder:{remainder}");
             for (int i = 0; i < winners.Count; i++)
             {
-                winners[i].ApplyWin(split);
-                if (i < (int)remainder) winners[i].ApplyWin(1); // 잔여칩 할당
+                winners[i].ApplyWinChips(split);
+                if (i < (int)remainder) winners[i].ApplyWinChips(1); // 잔여칩 할당
             }
         }
 

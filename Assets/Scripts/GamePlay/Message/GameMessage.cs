@@ -3,10 +3,19 @@ using PlayingCard.GamePlay.PlayModels;
 
 namespace PlayingCard.GamePlay.Message
 {
+    /// <summary>
+    /// 게임 종료 메시지
+    /// </summary>
 	public struct QuitGameMessage { }
 
+    /// <summary>
+    /// Main Menu 에서 Game 선택 메시지
+    /// </summary>
     public struct SelectGameMessage
     {
+        /// <summary>
+        /// 선택한 Game
+        /// </summary>
         public Game game;
 
         public SelectGameMessage(Game game)
@@ -15,12 +24,24 @@ namespace PlayingCard.GamePlay.Message
         }
     }
 
+    /// <summary>
+    /// Game Room 에서 게임 시작 메시지
+    /// </summary>
     public struct StartGameMessage { }
 
+    /// <summary>
+    /// Game Room 에서 게임 종료 메시지
+    /// </summary>
 	public struct EndGameMessage { }
 
+    /// <summary>
+    /// Game Room 에서 Main Menu로 빠져 나가는 메시지
+    /// </summary>
     public struct ExitGameMessage { }
 
+    /// <summary>
+    /// Player Turn 시작 메시지
+    /// </summary>
     public struct TurnStartMessage
     {
         public ulong MinRaise;
@@ -41,6 +62,9 @@ namespace PlayingCard.GamePlay.Message
         }
     }
 
+    /// <summary>
+    /// Player Turn Action 메시지
+    /// </summary>
     public struct TurnActionMessage
     {
 		public Player player;

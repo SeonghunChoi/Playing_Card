@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace PlayingCard.GamePlay.UI
 {
+    /// <summary>
+    /// Main Menu 메뉴 리스트 셀 UI object
+    /// </summary>
     public class MainMenuCellView : EnhancedScrollerCellView
     {
         [SerializeField] Button button;

@@ -31,6 +31,7 @@ namespace PlayingCard.ApplicationLifecycle
         {
             base.Configure(builder);
 
+            // MessageBroker 등록
             var options = builder.RegisterMessagePipe();
             builder.RegisterBuildCallback(c => GlobalMessagePipe.SetProvider(c.AsServiceProvider()));
             builder.RegisterMessageBroker<QuitGameMessage>(options);
@@ -41,6 +42,7 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterMessageBroker<TurnStartMessage>(options);
             builder.RegisterMessageBroker<TurnActionMessage>(options);
 
+            // Manager 등록
             builder.RegisterInstance(GameList);
             builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<HandRankingManager>(Lifetime.Singleton);
@@ -52,6 +54,7 @@ namespace PlayingCard.ApplicationLifecycle
             DontDestroyOnLoad(gameObject);
             Application.targetFrameRate = 120;
 
+            // 게임 종료 Message 구독
             var disposableBag = DisposableBag.CreateBuilder();
             quitGameSubscriber = Container.Resolve<ISubscriber<QuitGameMessage>>();
             quitGameSubscriber.Subscribe(x => QuitGame(x)).AddTo(disposableBag);

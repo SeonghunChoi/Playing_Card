@@ -4,6 +4,10 @@ using UnityEditor.SceneManagement;
 
 namespace PlayingCard.Editor
 {
+    /// <summary>
+    /// Unity Editor 에서 실행할 경우 시작 Scene 을 고정할 수 있는 기능
+    /// Off 하면 편집 중인 Scene 에서 시작 할 수 있다.
+    /// </summary>
     [InitializeOnLoad]
     public class SceneBootstrapper
     {

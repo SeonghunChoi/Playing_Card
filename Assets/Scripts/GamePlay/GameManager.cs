@@ -16,6 +16,9 @@ namespace PlayingCard.GamePlay
         void QuitGame();
     }
 
+    /// <summary>
+    /// 게임 전반을 관리한다.
+    /// </summary>
     [Serializable]
     public class GameManager : IGameManager
     {

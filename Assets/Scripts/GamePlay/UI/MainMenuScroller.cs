@@ -8,6 +8,9 @@ using VContainer;
 
 namespace PlayingCard.GamePlay.UI
 {
+    /// <summary>
+    /// Main Menu 용 Scrollview
+    /// </summary>
     public class MainMenuScroller : MonoBehaviour, IEnhancedScrollerDelegate
     {
         [SerializeField] 

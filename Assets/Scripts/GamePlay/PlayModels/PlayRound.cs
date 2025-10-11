@@ -9,6 +9,9 @@ namespace PlayingCard.GamePlay.PlayModels
         Complete
     }
 
+    /// <summary>
+    /// 라운드 정보를 상태별로 처리함
+    /// </summary>
     public class PlayRound
     {
         public RoundState RoundState { get; private set; }

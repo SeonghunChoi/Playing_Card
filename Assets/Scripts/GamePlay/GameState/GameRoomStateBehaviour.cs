@@ -4,6 +4,9 @@ using VContainer;
 
 namespace PlayingCard.GamePlay.GameState
 {
+    /// <summary>
+    /// GameRoom Scene에서 한정적으로 사용할 Container 설정
+    /// </summary>
     public class GameRoomStateBehaviour : GameStateBehaviour
     {
         public override GameState ActiveState => GameState.GameRoom;
@@ -19,6 +22,9 @@ namespace PlayingCard.GamePlay.GameState
             //builder.Register<HandRankingManager>(Lifetime.Scoped);
         }
 
+        /// <summary>
+        /// GameRoom Scene 시작 시 처리할 설정
+        /// </summary>
         protected override void Start()
         {
             base.Start();

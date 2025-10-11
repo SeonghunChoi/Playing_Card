@@ -8,6 +8,9 @@ using VContainer;
 
 namespace PlayingCard.GamePlay.UI
 {
+    /// <summary>
+    /// 메인 메뉴 UI
+    /// </summary>
     public class UIMainMenu : MonoBehaviour, IDisposable
     {
         [SerializeField]
@@ -31,6 +34,10 @@ namespace PlayingCard.GamePlay.UI
             selectGameDisposable = selectGameSubscriber.Subscribe(SelectGame);
         }
 
+        /// <summary>
+        /// 게임 선택 메시지 처리
+        /// </summary>
+        /// <param name="message"></param>
         void SelectGame(SelectGameMessage message)
         {
             bool isEmpty = message.game == null;
