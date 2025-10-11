@@ -6,6 +6,7 @@ using PlayingCard.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using VContainer;
 
@@ -13,23 +14,15 @@ namespace PlayingCard.GamePlay.PlayModels
 {
     public interface IPlayTable
     {
-        ulong MinRiase { get; }
-        ulong Pot { get; }
-        ulong SidePot { get; }
-        ulong MaxBet { get; }
-        int Round { get; }
         void InitGame(Game game);
-        void ExitGame();
         Player GetPlayer(int id);
     }
 
     public class PlayTable : IPlayTable, IDisposable
     {
-        public ulong MinRiase => game.Rule.MinRaise;
-        public ulong Pot { get { return pot; } }
-        public ulong SidePot { get { return sidePot; } }
-        public ulong MaxBet { get { return maxBet; } }
-        public int Round { get { return round; } }
+        HandRankingManager rankingManager;
+
+        ulong MinRaise => game.Rule.MinRaise;
 
         Game game;
         /// <summary>
@@ -42,13 +35,16 @@ namespace PlayingCard.GamePlay.PlayModels
 
         Queue<Card> deck;
         List<Card> communityCard;
-        ulong maxBet, pot, sidePot;
+        ulong lastMaxBet, pot, sidePot;
         int round;
+        Betting lastBetting;
         PlayRound currentRound;
 
         private readonly IDisposable startGameDisposable;
+        private readonly IDisposable exitGameDisposable;
         private readonly IPublisher<EndGameMessage> endGamePublisher;
-        private readonly IPublisher<TrunStartMessage> turnStartPublisher;
+        private readonly IPublisher<TurnStartMessage> turnStartPublisher;
+        private readonly IDisposable turnActionDisposable;
 
         System.Random random = new System.Random();
 
@@ -56,13 +52,19 @@ namespace PlayingCard.GamePlay.PlayModels
 
         [Inject]
         public PlayTable(
+            HandRankingManager rankingManager,
             ISubscriber<StartGameMessage> startGameSubscriber,
+            ISubscriber<ExitGameMessage> exitGameSubscriber,
             IPublisher<EndGameMessage> endGamePublisher,
-            IPublisher<TrunStartMessage> turnStartPublisher)
+            IPublisher<TurnStartMessage> turnStartPublisher,
+            ISubscriber<TurnActionMessage> turnActionSubscriber)
         {
+            this.rankingManager = rankingManager;
             startGameDisposable = startGameSubscriber.Subscribe(StartGame);
+            exitGameDisposable = exitGameSubscriber.Subscribe(ExitGame);
             this.endGamePublisher = endGamePublisher;
             this.turnStartPublisher = turnStartPublisher;
+            turnActionDisposable = turnActionSubscriber.Subscribe(TrunAction);
         }
 
         private void StartGame(StartGameMessage message)
@@ -100,9 +102,11 @@ namespace PlayingCard.GamePlay.PlayModels
             }
             firstPlayerIdx = 0;
 
+            lastMaxBet = 0;
             pot = 0;
             sidePot = 0;
             round = 1;
+            lastBetting = Betting.Fold;
 
             SetCurrentRound();
 
@@ -132,9 +136,6 @@ namespace PlayingCard.GamePlay.PlayModels
             for (int i = 0; i < cards.Count; i++)
             {
                 deck.Enqueue(cards[i]);
-#if UNITY_EDITOR
-                Debug.Log(cards[i].ToString());
-#endif
             }
         }
 
@@ -154,7 +155,7 @@ namespace PlayingCard.GamePlay.PlayModels
             }
         }
 
-        public void ExitGame()
+        void ExitGame(ExitGameMessage message)
         {
             game = null;
             SceneLoaderWarpper.Instance.LoadScene(DefineScene.MAIN_MENU);
@@ -162,7 +163,7 @@ namespace PlayingCard.GamePlay.PlayModels
 
         void SetCurrentRound()
         {
-            if (game.Rule.Rounds.Count > Round - 1)
+            if (game.Rule.Rounds.Count > round - 1)
                 currentRound = new PlayRound(game.Rule.Rounds[round - 1]);
             else
                 currentRound = null;
@@ -172,7 +173,7 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             if (currentRound == null)
             {
-                endGamePublisher.Publish(new EndGameMessage());
+                GameResolve();
                 return;
             }
 
@@ -192,6 +193,20 @@ namespace PlayingCard.GamePlay.PlayModels
                     }
                     break;
                 case RoundState.Complete:
+                    {
+                        // 라운드 정리.
+                        for (int i = 0; i < players.Count; i++)
+                        {
+                            var player = players[i];
+                            player.SetState(PlayerState.Waiting);
+                        }
+                        lastBetting = Betting.Fold;
+                        lastMaxBet = 0;
+                        roundTurn = 0;
+                        round++;
+                        SetCurrentRound();
+                        PlayRound();
+                    }
                     break;
                 default:
                     break;
@@ -200,6 +215,14 @@ namespace PlayingCard.GamePlay.PlayModels
 
         void DealCard()
         {
+            if (currentRound.BurnCardCount > 0)
+            {
+                for (int i = 0; i < currentRound.BurnCardCount; i++)
+                {
+                    // Card Burn
+                    deck.Dequeue();
+                }
+            }
             if (currentRound.DealTarget == DealTarget.Table)
             {
                 for (int i = 0; i < currentRound.DealCardCount; i++)
@@ -243,8 +266,13 @@ namespace PlayingCard.GamePlay.PlayModels
                             endGamePublisher.Publish(new EndGameMessage());
                         }
                     }
-                    player.SetState(PlayerState.Playing);
                 }
+            }
+            // 카드를 모두 나누어 주었으므로 플레이어들 상태를 변경해 준다.
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+                player.SetState(PlayerState.Playing);
             }
             currentRound.NextState();
             PlayRound();
@@ -254,7 +282,7 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             int idx = firstPlayerIdx + turn;
             if (idx >= players.Count)
-                idx -= players.Count;
+                idx = idx % players.Count;
 
             return players[idx];
         }
@@ -263,28 +291,140 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             if (players.Count(p => p.State.IsPlayable()) <= 1)
             {
-                ResolveWinner();
+                var winner = players.Find(p => p.State.IsPlayable());
+                ResolveWinner(winner);
                 return;
             }
 
-            if (players.Count(p => p.State.IsBetable()) == 0)
+            if (players.Count(p => p.State.IsBetable(lastBetting)) == 0)
             {
                 currentRound.NextState();
+                PlayRound();
                 return;
             }
 
             var player = GetTurnPlayer(roundTurn);
-            turnStartPublisher.Publish(new TrunStartMessage(player));
+            turnStartPublisher.Publish(new TurnStartMessage(MinRaise, round, pot, lastMaxBet, lastBetting, player));
         }
 
-        void ResolveWinner()
+        void TrunAction(TurnActionMessage message)
         {
+            var player = message.player;
 
+            if (message.bet > 0)
+            {
+                if (sidePot > 0)
+                {
+                    sidePot += message.bet;
+                }
+                else
+                {
+                    pot += message.bet;
+                    if (message.bet > lastMaxBet)
+                        lastMaxBet = message.bet;
+                }
+                player.ApplyBet(message.bet);
+            }
+
+            switch (message.betting)
+            {
+                case Betting.Fold:
+                    {
+                        player.SetState(PlayerState.Folded);
+                    }
+                    break;
+                case Betting.Check:
+                    {
+                        if (lastBetting < Betting.Check)
+                            lastBetting = Betting.Check;
+                        player.SetState(PlayerState.Checked);
+                    }
+                    break;
+                case Betting.Bet:
+                case Betting.Call:
+                    {
+                        if (lastBetting < Betting.Call)
+                            lastBetting = Betting.Call;
+                        player.SetState(PlayerState.Called);
+                    }
+                    break;
+                case Betting.Raise:
+                    {
+                        if (lastBetting < Betting.Raise)
+                            lastBetting = Betting.Raise;
+                        player.SetState(PlayerState.Raised);
+                    }
+                    break;
+                case Betting.AllIn:
+                    break;
+                default:
+                    break;
+            }
+
+            roundTurn++;
+            RunBetting();
+        }
+
+        /// <summary>
+        /// 여러명이 남은 상태에서 게임이 종료되었을 때 승자를 결정한다.
+        /// </summary>
+        void GameResolve()
+        {
+            var playables = players.FindAll(p => p.State.IsPlayable());
+            Player topRanker = null;
+            HandRanking topHand = null;
+            for (int i = 0; i < playables.Count; i++)
+            {
+                var player = playables[i];
+                var hands = player.AllCards;
+
+                var HandRanking = rankingManager.GetHandRankingType(hands);
+
+                if (topRanker == null)
+                {
+                    topRanker = player;
+                    topHand = HandRanking;
+                }
+                else
+                {
+                    if (topHand.HandRank < HandRanking.HandRank)
+                    {
+                        topRanker = player;
+                        topHand = HandRanking;
+                    }
+                    else if (topHand.HandRank == HandRanking.HandRank)
+                    {
+                        if (topHand.Rank < HandRanking.Rank)
+                        {
+                            topRanker = player;
+                            topHand = HandRanking;
+                        }
+                    }
+                }
+            }
+            ResolveWinner(topRanker);
+        }
+
+        void ResolveWinner(Player winner)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("ResolveWinner");
+            var hands = winner.AllCards;
+            for (int i = 0; i < winner.AllCards.Count; i++)
+            {
+                sb.AppendLine(hands[i].ToString());
+            }
+            var handRanking = rankingManager.GetHandRankingType(hands);
+            sb.AppendLine("====================");
+            sb.AppendLine(handRanking.ToString());
+            Debug.Log(sb.ToString());
         }
 
         public void Dispose()
         {
             startGameDisposable?.Dispose();
+            exitGameDisposable?.Dispose();
+            turnActionDisposable?.Dispose();
         }
     }
 }

@@ -24,11 +24,19 @@ namespace PlayingCard.GamePlay.PlayModels
         Out         // 게임에서 탈락
     }
 
+    public enum PlayerJob
+    {
+        Dealer,
+        SmallBlind,
+        BigBlind,
+        Normal,
+    }
+
     public class Player
     {
-        public int Id;
-        public ulong Money;
-        public ulong Bet;
+        public int Id { get; private set; }
+        public ulong Money { get; private set; }
+        public ulong Bet { get; private set; }
         public PlayerState State { get; private set; }
 
         //내가 가진 모든 카드
@@ -54,6 +62,7 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             Id = id;
             Money = money;
+            Bet = 0;
 
             SetState(PlayerState.Waiting);
         }
@@ -66,7 +75,18 @@ namespace PlayingCard.GamePlay.PlayModels
                 return;
             }
 
+            if (state == PlayerState.Waiting)
+            {
+                Bet = 0;
+            }
+
             State = state;
+        }
+
+        public void ApplyBet(ulong bet)
+        {
+            Money -= bet;
+            this.Bet += bet;
         }
 
         public void ReceiveCard(Card card)
@@ -99,7 +119,7 @@ namespace PlayingCard.GamePlay.PlayModels
             return result;
         }
 
-        public static bool IsBetable(this PlayerState state)
+        public static bool IsBetable(this PlayerState state, Betting lastBetting)
         {
             bool result = false;
 
@@ -107,8 +127,16 @@ namespace PlayingCard.GamePlay.PlayModels
             {
                 case PlayerState.Playing:
                 case PlayerState.AllIn:
+                    result = true;
+                    break;
                 case PlayerState.Checked:
+                    if (lastBetting > Betting.Check)
+                        result = true;
+                    break;
                 case PlayerState.Called:
+                    if (lastBetting > Betting.Call)
+                        result = true;
+                    break;
                 case PlayerState.Raised:
                     result = true;
                     break;

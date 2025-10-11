@@ -16,6 +16,8 @@ namespace PlayingCard.GamePlay.PlayModels
         public DealTarget DealTarget => gameRound.DealTarget;
         public DealFace DealFace => gameRound.DealFace;
         public int DealCardCount => gameRound.DealCardCount;
+        public int BurnCardCount => gameRound.BurnCardCount;
+        public int DrawCardCount => gameRound.DrawCardCount;
 
         GameRound gameRound;
 

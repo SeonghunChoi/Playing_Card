@@ -13,6 +13,10 @@ namespace PlayingCard.GamePlay.GameState
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
+
+            //GameManager gameManager = Container.Resolve<GameManager>();
+            //builder.RegisterInstance(gameManager.Game.Rule);
+            //builder.Register<HandRankingManager>(Lifetime.Scoped);
         }
 
         protected override void Start()

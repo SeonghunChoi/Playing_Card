@@ -38,11 +38,16 @@ namespace PlayingCard.GamePlay.UI
         [SerializeField]
         Button buttonAllIn;
 
-        private IDisposable turnStartDisposable;
+        [SerializeField]
+        UIConfirmBetMoney uiConfirmBetMoney;
 
-        IPlayTable table;
+        private IDisposable turnStartDisposable;
+        private IPublisher<TurnActionMessage> turnActionPublisher;
+        private IPublisher<ExitGameMessage> exitGamePublisher;
 
         Player player;
+        ulong lastMaxBet;
+        ulong minRaise;
 
         private void Start()
         {
@@ -58,27 +63,30 @@ namespace PlayingCard.GamePlay.UI
 
         [Inject]
         public void Set(
-            IPlayTable table, 
-            ISubscriber<TrunStartMessage> turnStartSubscriber)
+            ISubscriber<TurnStartMessage> turnStartSubscriber,
+            IPublisher<TurnActionMessage> turnActionPublisher,
+            IPublisher<ExitGameMessage> exitGamePublisher)
         {
-            this.table = table;
             turnStartDisposable = turnStartSubscriber.Subscribe(StartTurn);
-
-            Init(table);
+            this.turnActionPublisher = turnActionPublisher;
+            this.exitGamePublisher = exitGamePublisher;
         }
 
-        private void StartTurn(TrunStartMessage message)
+        private void StartTurn(TurnStartMessage message)
         {
-            player = message.player;
+            this.player = message.player;
+            this.lastMaxBet = message.LastMaxBet;
+            this.minRaise = message.MinRaise;
 
-            SetPlayerInfo(player);
-            SetActionButtons();
+            Init(message.Pot, message.Round);
+            SetPlayerInfo(message.player);
+            SetActionButtons(message.player, message.LastMaxBet, message.MinRaise, message.LastBetting);
         }
 
-        private void Init(IPlayTable table)
+        private void Init(ulong pot, int round)
         {
-            textPot.text = table.Pot.ToString("N0");
-            textRound.text = $"Round: {table.Round}";
+            textPot.text = pot.ToString("N0");
+            textRound.text = $"Round: {round}";
         }
 
         private void SetPlayerInfo(Player player)
@@ -88,52 +96,79 @@ namespace PlayingCard.GamePlay.UI
             textBet.text = player.Bet.ToString("N0");
         }
 
-        private void SetActionButtons()
+        private void SetActionButtons(Player player, ulong lastMaxBet, ulong minRaise, Betting lastBetting)
         {
-            ulong callAmount = table.MaxBet - player.Bet;
-            ulong remainMoney = player.Money - player.Bet;
+            ulong callAmount = lastMaxBet - player.Bet;
 
-            buttonFold.gameObject.SetActive(player.State.IsBetable());
-            buttonCheck.gameObject.SetActive(player.State.IsBetable() && callAmount == 0);
-            buttonBet.gameObject.SetActive(player.State.IsBetable() && callAmount == 0 && table.MaxBet == 0);
-            buttonCall.gameObject.SetActive(player.State.IsBetable() && callAmount > 0 && remainMoney >= callAmount);
-            buttonRaise.gameObject.SetActive(player.State.IsBetable() && callAmount > 0 && remainMoney > callAmount + table.MinRiase);
-            buttonAllIn.gameObject.SetActive(player.State.IsBetable() && callAmount > 0 && remainMoney > 0);
+            buttonFold.gameObject.SetActive(player.State.IsBetable(lastBetting));
+            buttonCheck.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount == 0);
+            buttonBet.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount == 0 && lastMaxBet == 0);
+            buttonCall.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Money >= callAmount);
+            buttonRaise.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Money > callAmount + minRaise);
+            buttonAllIn.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Money > 0);
         }
 
         private void OnClickExit()
         {
-            table.ExitGame();
+            exitGamePublisher.Publish(new ExitGameMessage());
         }
 
         private void OnClickFold()
         {
-            player.SetState(PlayerState.Folded);
+            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Fold, 0));
         }
 
         private void OnClickCheck()
         {
-
+            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Check, 0));
         }
 
         private void OnClickBet()
         {
+            TaskBet();
+        }
 
+        private async void TaskBet()
+        {
+            try
+            {
+                ulong bet = await uiConfirmBetMoney.GetBetMoney(player, Betting.Bet, lastMaxBet, minRaise);
+                turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Bet, bet));
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("Cancel");
+            }
         }
 
         private void OnClickCall()
         {
-
+            ulong callAmount = lastMaxBet - player.Bet;
+            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Call, callAmount));
         }
 
         private void OnClickRaise()
         {
+            TaskRaise();
+        }
 
+        private async void TaskRaise()
+        {
+            try
+            {
+                ulong callAmount = lastMaxBet - player.Bet;
+                ulong bet = await uiConfirmBetMoney.GetBetMoney(player, Betting.Raise, callAmount + minRaise, minRaise);
+                turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Raise, bet));
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("Cancel");
+            }
         }
 
         private void OnClickAllIn()
         {
-
+            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.AllIn, player.Money));
         }
 
         private void OnDestroy()

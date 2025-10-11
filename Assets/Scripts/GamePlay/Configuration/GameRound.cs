@@ -29,5 +29,7 @@ namespace PlayingCard.GamePlay.Configuration
         public DealTarget DealTarget = DealTarget.Player;
         public DealFace DealFace = DealFace.FaceUp;
         public int DealCardCount = 1;
+        public int BurnCardCount = 0;
+        public int DrawCardCount = 0;
     }
 }

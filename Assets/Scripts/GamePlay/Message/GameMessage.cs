@@ -21,12 +21,22 @@ namespace PlayingCard.GamePlay.Message
 
     public struct ExitGameMessage { }
 
-    public struct TrunStartMessage
+    public struct TurnStartMessage
     {
+        public ulong MinRaise;
+        public int Round;
+        public ulong Pot;
+        public ulong LastMaxBet;
+        public Betting LastBetting;
         public Player player;
 
-        public TrunStartMessage(Player player)
+        public TurnStartMessage(ulong minRaise, int round, ulong pot, ulong lastMaxBet, Betting lastBetting, Player player)
         {
+            this.MinRaise = minRaise;
+            this.Round = round;
+            this.Pot = pot;
+            this.LastMaxBet = lastMaxBet;
+            this.LastBetting = lastBetting; 
             this.player = player;
         }
     }
@@ -34,10 +44,14 @@ namespace PlayingCard.GamePlay.Message
     public struct TurnActionMessage
     {
 		public Player player;
+        public Betting betting;
+        public ulong bet;
 
-        public TurnActionMessage(Player player)
+        public TurnActionMessage(Player player, Betting betting, ulong bet)
         {
             this.player = player;
+            this.betting = betting;
+            this.bet = bet;
         }
     }
 }

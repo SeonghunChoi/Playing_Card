@@ -1,10 +1,7 @@
 ﻿using PlayingCard.GamePlay.Configuration;
 using PlayingCard.GamePlay.PlayModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PlayingCard.GamePlay
 {
@@ -32,12 +29,12 @@ namespace PlayingCard.GamePlay
 
     public class HandRankingManager
     {
-        public HandRankingManager(GameRule rule)
-        {
-            this.rule = rule;
-        }
+        //public HandRankingManager(GameRule rule)
+        //{
+        //    this.rule = rule;
+        //}
 
-        GameRule rule;
+        //GameRule rule;
 
         public HandRanking GetHandRankingType(List<Card> hand)
         {
@@ -65,7 +62,7 @@ namespace PlayingCard.GamePlay
         
         public static bool IsStraight(List<Card> hand)
         {
-            var ranks = hand.OrderBy(rank => rank).ToList();
+            var ranks = hand.OrderBy(c => c.Rank).ToList();
 
             var royalStraight = new List<Rank> { Rank.Two, Rank.Three, Rank.Four, Rank.Five, Rank.Ace };
             bool isSequenceEqual = true;
@@ -163,5 +160,10 @@ namespace PlayingCard.GamePlay
         public HandRank HandRank;
 
         public Rank Rank;
+
+        public override string ToString()
+        {
+            return $"HandRank:{HandRank}, Rank:{Rank}";
+        }
     }
 }

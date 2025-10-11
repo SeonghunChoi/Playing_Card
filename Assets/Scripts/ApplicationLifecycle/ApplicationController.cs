@@ -37,11 +37,13 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterMessageBroker<SelectGameMessage>(options);
             builder.RegisterMessageBroker<StartGameMessage>(options);
             builder.RegisterMessageBroker<EndGameMessage>(options);
-            builder.RegisterMessageBroker<TrunStartMessage>(options);
+            builder.RegisterMessageBroker<ExitGameMessage>(options);
+            builder.RegisterMessageBroker<TurnStartMessage>(options);
             builder.RegisterMessageBroker<TurnActionMessage>(options);
 
             builder.RegisterInstance(GameList);
             builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
+            builder.Register<HandRankingManager>(Lifetime.Singleton);
             builder.Register<PlayTable>(Lifetime.Singleton).AsImplementedInterfaces();
         }
 
