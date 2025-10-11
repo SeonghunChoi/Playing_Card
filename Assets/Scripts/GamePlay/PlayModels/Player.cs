@@ -89,6 +89,11 @@ namespace PlayingCard.GamePlay.PlayModels
             this.Bet += bet;
         }
 
+        public void ApplyWin(ulong chips)
+        {
+            Money += chips;
+        }
+
         public void ReceiveCard(Card card)
         {
             if (card.IsFaceUp) Hands.Add(card);

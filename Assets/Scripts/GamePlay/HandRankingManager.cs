@@ -20,13 +20,6 @@ namespace PlayingCard.GamePlay
         FiveOfAKind,
     }
 
-    public enum ComboType
-    {
-        SameSuit,
-        SameNumber,
-        Straight
-    }
-
     public class HandRankingManager
     {
         //public HandRankingManager(GameRule rule)
@@ -41,7 +34,8 @@ namespace PlayingCard.GamePlay
             hand.Sort((x, y) => x.Rank.CompareTo(y.Rank));
             var allCombos = GetFiveCardCombinations(hand);
 
-            Rank bestRank = hand[hand.Count - 1].Rank;
+            hand.Reverse();
+            List<Rank> kickers = hand.ConvertAll(x => x.Rank);
             HandRank bestHandRank = HandRank.HighCard;
 
             foreach (var combo in allCombos)
@@ -51,7 +45,7 @@ namespace PlayingCard.GamePlay
                     bestHandRank = handRank;
             }
 
-            return new HandRanking(bestHandRank, bestRank);
+            return new HandRanking(bestHandRank, kickers);
         }
 
         public static bool IsFlush(List<Card> hand)
@@ -151,19 +145,43 @@ namespace PlayingCard.GamePlay
 
     public class HandRanking
     {
-        public HandRanking(HandRank bestHandRank, Rank bestRank)
+        public HandRanking(HandRank bestHandRank, List<Rank> kickers)
         {
             HandRank = bestHandRank;
-            Rank = bestRank;
+            Kickers = kickers;
         }
 
         public HandRank HandRank;
 
-        public Rank Rank;
+        public List<Rank> Kickers;
+
+        public int CompareHandRanking(HandRanking handRanking)
+        {
+            int cmp = -HandRank.CompareTo(handRanking.HandRank);
+
+            if (cmp == 0)
+            {
+                for (int i = 0; i < Kickers.Count; i++)
+                {
+                    Rank A = Kickers[i];
+                    Rank B = handRanking.Kickers[i];
+                    cmp = -A.CompareTo(B);
+                    if (cmp == 0)
+                        continue;
+                }
+            }
+
+            return cmp;
+        }
 
         public override string ToString()
         {
-            return $"HandRank:{HandRank}, Rank:{Rank}";
+            string log = $"HandRank:{HandRank}, Kickers:";
+            for (int i = 0; i < Kickers.Count; i++)
+            {
+                log += $"[{Kickers[i]}]";
+            }
+            return log;
         }
     }
 }

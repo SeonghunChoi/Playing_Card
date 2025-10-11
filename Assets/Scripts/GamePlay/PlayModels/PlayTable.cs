@@ -291,8 +291,8 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             if (players.Count(p => p.State.IsPlayable()) <= 1)
             {
-                var winner = players.Find(p => p.State.IsPlayable());
-                ResolveWinner(winner);
+                var winners = players.FindAll(p => p.State.IsPlayable());
+                ResolveWinner(winners);
                 return;
             }
 
@@ -371,8 +371,8 @@ namespace PlayingCard.GamePlay.PlayModels
         void GameResolve()
         {
             var playables = players.FindAll(p => p.State.IsPlayable());
-            Player topRanker = null;
-            HandRanking topHand = null;
+
+            Dictionary<Player, HandRanking> topPlayers = new Dictionary<Player, HandRanking>();
             for (int i = 0; i < playables.Count; i++)
             {
                 var player = playables[i];
@@ -380,44 +380,51 @@ namespace PlayingCard.GamePlay.PlayModels
 
                 var HandRanking = rankingManager.GetHandRankingType(hands);
 
-                if (topRanker == null)
+                if (topPlayers.Count == 0)
                 {
-                    topRanker = player;
-                    topHand = HandRanking;
+                    topPlayers.Add(player, HandRanking);
                 }
                 else
                 {
-                    if (topHand.HandRank < HandRanking.HandRank)
+                    var topHand = topPlayers.Values.FirstOrDefault();
+                    int cmp = topHand.CompareHandRanking(HandRanking);
+                    if (cmp == 0)
                     {
-                        topRanker = player;
-                        topHand = HandRanking;
+                        topPlayers.Add(player, HandRanking);
                     }
-                    else if (topHand.HandRank == HandRanking.HandRank)
+                    else if (cmp == 1)
                     {
-                        if (topHand.Rank < HandRanking.Rank)
-                        {
-                            topRanker = player;
-                            topHand = HandRanking;
-                        }
+                        topPlayers.Clear();
+                        topPlayers.Add(player, HandRanking);
                     }
                 }
             }
-            ResolveWinner(topRanker);
+            ResolveWinner(topPlayers.Keys.ToList());
         }
 
-        void ResolveWinner(Player winner)
+        void ResolveWinner(List<Player> winners)
         {
+#if UNITY_EDITOR
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("ResolveWinner");
-            var hands = winner.AllCards;
-            for (int i = 0; i < winner.AllCards.Count; i++)
+            for (int i = 0; i < winners.Count; i++)
             {
-                sb.AppendLine(hands[i].ToString());
+                var player = winners[i];
+                var hands = player.AllCards;
+                var handRanking = rankingManager.GetHandRankingType(hands);
+                sb.AppendLine($"Player:{player.Id}, {handRanking.ToString()}");
+                sb.AppendLine("--------------------------------------------------------------------------------");
             }
-            var handRanking = rankingManager.GetHandRankingType(hands);
-            sb.AppendLine("====================");
-            sb.AppendLine(handRanking.ToString());
             Debug.Log(sb.ToString());
+#endif
+            ulong split = pot / (ulong)winners.Count;
+            ulong remainder = pot % (ulong)winners.Count;
+            Debug.Log($"split:{split}, remainder:{remainder}");
+            for (int i = 0; i < winners.Count; i++)
+            {
+                winners[i].ApplyWin(split);
+                if (i < (int)remainder) winners[i].ApplyWin(1); // 잔여칩 할당
+            }
         }
 
         public void Dispose()
