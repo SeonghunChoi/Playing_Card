@@ -333,7 +333,7 @@ GameObject:
   - component: {fileID: 375970019}
   - component: {fileID: 375970018}
   m_Layer: 5
-  m_Name: TextName
+  m_Name: TextDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -732,6 +732,7 @@ MonoBehaviour:
   autoInjectGameObjects:
   - {fileID: 1451846675}
   - {fileID: 612946394}
+  - {fileID: 891254535}
 --- !u!4 &778840815
 Transform:
   m_ObjectHideFlags: 0
@@ -876,6 +877,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 891254536}
+  - component: {fileID: 891254537}
   m_Layer: 5
   m_Name: GameInfo
   m_TagString: Untagged
@@ -905,6 +907,20 @@ RectTransform:
   m_AnchoredPosition: {x: 400, y: 0}
   m_SizeDelta: {x: 600, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &891254537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891254535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ca5678e831665947803e77e027980bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.UI.UIGameInfo
+  textGameName: {fileID: 1889043524}
+  textGameDesc: {fileID: 375970018}
 --- !u!1 &928206101
 GameObject:
   m_ObjectHideFlags: 0

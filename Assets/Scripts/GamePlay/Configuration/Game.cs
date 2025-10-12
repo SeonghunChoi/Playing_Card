@@ -18,6 +18,7 @@ namespace PlayingCard.GamePlay.Configuration
 #endif
         public int GameId = 1;
         public string GameName;
+        public string GameDescription;
         /// <summary>
         /// 카드 정보
         /// </summary>

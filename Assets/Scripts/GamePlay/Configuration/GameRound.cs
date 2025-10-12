@@ -26,6 +26,7 @@ namespace PlayingCard.GamePlay.Configuration
     [CreateAssetMenu(menuName = "GameData/Round", order = 5)]
     public class GameRound : ScriptableObject
     {
+        public string RoundName;
         public DealTarget DealTarget = DealTarget.Player;
         public DealFace DealFace = DealFace.FaceUp;
         public int DealCardCount = 1;
