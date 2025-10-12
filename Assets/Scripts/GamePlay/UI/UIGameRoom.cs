@@ -11,6 +11,9 @@ using VContainer;
 
 namespace PlayingCard.GamePlay.UI
 {
+    /// <summary>
+    /// Game Room 용 UI
+    /// </summary>
     public class UIGameRoom : MonoBehaviour
     {
         [SerializeField]
@@ -210,12 +213,20 @@ namespace PlayingCard.GamePlay.UI
             turnActionPublisher.Publish(new TurnActionMessage(player, Betting.AllIn, player.Chips));
         }
 
+        /// <summary>
+        /// 승리자 확인 Message 처리
+        /// </summary>
+        /// <param name="message"></param>
         private void ShowWinner(WinnerMessage message)
         {
             var winners = message.winners;
             TaskShowWinner(winners);
         }
 
+        /// <summary>
+        /// 승리자 확인 UI 표시
+        /// </summary>
+        /// <param name="winners"></param>
         private async void TaskShowWinner(Dictionary<Player, ulong> winners)
         {
             foreach (var player in winners.Keys)

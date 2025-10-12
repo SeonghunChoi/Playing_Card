@@ -220,6 +220,9 @@ namespace PlayingCard.GamePlay.PlayModels
             }
         }
 
+        /// <summary>
+        /// 카드를 나누어 준다.
+        /// </summary>
         void DealCard()
         {
             if (currentRound.BurnCardCount > 0)
@@ -297,6 +300,11 @@ namespace PlayingCard.GamePlay.PlayModels
             PlayRound();
         }
 
+        /// <summary>
+        /// 현재 Turn 인 플레이어를 반환 한다.
+        /// </summary>
+        /// <param name="turn"></param>
+        /// <returns></returns>
         Player GetTurnPlayer(int turn)
         {
             int idx = firstPlayerIdx + turn;
@@ -306,6 +314,9 @@ namespace PlayingCard.GamePlay.PlayModels
             return players[idx];
         }
 
+        /// <summary>
+        /// 베팅을 시작한다.
+        /// </summary>
         void RunBetting()
         {
             if (players.Count(p => p.State.IsPlayable()) <= 1)
@@ -327,6 +338,10 @@ namespace PlayingCard.GamePlay.PlayModels
             turnStartPublisher.Publish(new TurnStartMessage(MinRaise, roundName, pot, lastMaxBet, lastBetting, player));
         }
 
+        /// <summary>
+        /// 플레이어가 Turn 에 취한 행동을 처리한다.
+        /// </summary>
+        /// <param name="message"></param>
         void TrunAction(TurnActionMessage message)
         {
             var player = message.player;
@@ -422,6 +437,10 @@ namespace PlayingCard.GamePlay.PlayModels
             ResolveWinner(topPlayers.Keys.ToList());
         }
 
+        /// <summary>
+        /// 승자 처리
+        /// </summary>
+        /// <param name="winners"></param>
         void ResolveWinner(List<Player> winners)
         {
 #if UNITY_EDITOR

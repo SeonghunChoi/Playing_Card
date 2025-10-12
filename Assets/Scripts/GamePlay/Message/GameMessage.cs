@@ -80,6 +80,9 @@ namespace PlayingCard.GamePlay.Message
         }
     }
 
+    /// <summary>
+    /// ObjectCard 를 Target에 지급한다.
+    /// </summary>
     public struct DealCardMessage
     {
         public List<Card> dealCards;
@@ -92,6 +95,9 @@ namespace PlayingCard.GamePlay.Message
         }
     }
 
+    /// <summary>
+    /// 승자 표시 메시지
+    /// </summary>
     public struct WinnerMessage
     {
         public Dictionary<Player, ulong> winners;
@@ -102,6 +108,9 @@ namespace PlayingCard.GamePlay.Message
         }
     }
 
+    /// <summary>
+    /// 카메라 플레이어 위치로 이동
+    /// </summary>
     public struct SetPlayerCameraMessage
     {
         public Player player;
