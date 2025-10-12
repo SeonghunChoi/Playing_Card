@@ -1,5 +1,6 @@
 ﻿using PlayingCard.GamePlay.Configuration;
 using PlayingCard.GamePlay.PlayModels;
+using System.Collections.Generic;
 
 namespace PlayingCard.GamePlay.Message
 {
@@ -76,6 +77,18 @@ namespace PlayingCard.GamePlay.Message
             this.player = player;
             this.betting = betting;
             this.bet = bet;
+        }
+    }
+
+    public struct DealCardMessage
+    {
+        public List<Card> dealCards;
+        public Player player;
+
+        public DealCardMessage(List<Card> dealCards, Player player)
+        {
+            this.dealCards = dealCards;
+            this.player = player;
         }
     }
 }

@@ -31,6 +31,7 @@ namespace PlayingCard.GamePlay.PlayModels
     public struct Card
     {
         public Suit Suit { get; private set; }
+
         public Rank Rank { get; private set; }
         
         public bool IsWild { get; private set; }

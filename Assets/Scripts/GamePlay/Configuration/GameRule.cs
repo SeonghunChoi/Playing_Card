@@ -11,8 +11,17 @@ namespace PlayingCard.GamePlay.Configuration
     [CreateAssetMenu(menuName = "GameData/Rule", order = 4)]
     public class GameRule : ScriptableObject
     {
+#if ODIN_INSPECTOR
         [MinValue(1)]
+#else
+        [Min(1)]
+#endif
         public int MinPlayer = 1;
+#if ODIN_INSPECTOR
+        [MinValue(2), MaxValue(4)]
+#else
+        [Range(2,4)]
+#endif
         public int MaxPlayer = 2;
         public int InitialCardsCount = 0;
         public ulong MinRaise = 1;

@@ -41,6 +41,7 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterMessageBroker<ExitGameMessage>(options);
             builder.RegisterMessageBroker<TurnStartMessage>(options);
             builder.RegisterMessageBroker<TurnActionMessage>(options);
+            builder.RegisterMessageBroker<DealCardMessage>(options);
 
             // Manager µî·Ï
             builder.RegisterInstance(GameList);

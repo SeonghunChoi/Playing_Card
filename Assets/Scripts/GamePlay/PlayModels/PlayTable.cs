@@ -45,10 +45,11 @@ namespace PlayingCard.GamePlay.PlayModels
         private readonly IPublisher<EndGameMessage> endGamePublisher;
         private readonly IPublisher<TurnStartMessage> turnStartPublisher;
         private readonly IDisposable turnActionDisposable;
+        private readonly IPublisher<DealCardMessage> dealCardPublisher;
 
         System.Random random = new System.Random();
 
-        public List<PlayObject.CardObject> ShareCards;
+        List<Card> dealBuffer = new List<Card>();
 
         [Inject]
         public PlayTable(
@@ -57,7 +58,8 @@ namespace PlayingCard.GamePlay.PlayModels
             ISubscriber<ExitGameMessage> exitGameSubscriber,
             IPublisher<EndGameMessage> endGamePublisher,
             IPublisher<TurnStartMessage> turnStartPublisher,
-            ISubscriber<TurnActionMessage> turnActionSubscriber)
+            ISubscriber<TurnActionMessage> turnActionSubscriber,
+            IPublisher<DealCardMessage> dealCardPublisher)
         {
             this.rankingManager = rankingManager;
             startGameDisposable = startGameSubscriber.Subscribe(StartGame);
@@ -65,6 +67,7 @@ namespace PlayingCard.GamePlay.PlayModels
             this.endGamePublisher = endGamePublisher;
             this.turnStartPublisher = turnStartPublisher;
             turnActionDisposable = turnActionSubscriber.Subscribe(TrunAction);
+            this.dealCardPublisher = dealCardPublisher;
         }
 
         private void StartGame(StartGameMessage message)
@@ -225,11 +228,18 @@ namespace PlayingCard.GamePlay.PlayModels
             }
             if (currentRound.DealTarget == DealTarget.Table)
             {
+                dealBuffer.Clear();
                 for (int i = 0; i < currentRound.DealCardCount; i++)
                 {
                     if (deck.Count > 0)
                     {
-                        communityCard.Add(deck.Dequeue());
+                        var card = deck.Dequeue();
+                        if (currentRound.DealFace == DealFace.FaceUp && card.IsFaceUp == false)
+                            card.Flip();
+                        else if (currentRound.DealFace == DealFace.FaceDown && card.IsFaceUp)
+                            card.Flip();
+
+                        dealBuffer.Add(card);
                     }
                     else
                     {
@@ -237,6 +247,8 @@ namespace PlayingCard.GamePlay.PlayModels
                         endGamePublisher.Publish(new EndGameMessage());
                     }
                 }
+                communityCard.AddRange(dealBuffer);
+                dealCardPublisher.Publish(new DealCardMessage(dealBuffer, null));
             }
             else
             {
@@ -248,6 +260,7 @@ namespace PlayingCard.GamePlay.PlayModels
                         continue;
                     }
 
+                    dealBuffer.Clear();
                     for (int j = 0; j < currentRound.DealCardCount; j++)
                     {
                         if (deck.Count > 0)
@@ -259,6 +272,7 @@ namespace PlayingCard.GamePlay.PlayModels
                                 card.Flip();
 
                             player.ReceiveCard(card);
+                            dealBuffer.Add(card);
                         }
                         else
                         {
@@ -266,6 +280,7 @@ namespace PlayingCard.GamePlay.PlayModels
                             endGamePublisher.Publish(new EndGameMessage());
                         }
                     }
+                    dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
                 }
             }
             // 카드를 모두 나누어 주었으므로 플레이어들 상태를 변경해 준다.

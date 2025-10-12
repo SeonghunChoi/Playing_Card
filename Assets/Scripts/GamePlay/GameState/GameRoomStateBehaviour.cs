@@ -1,5 +1,8 @@
 ﻿using MessagePipe;
 using PlayingCard.GamePlay.Message;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 using VContainer;
 
 namespace PlayingCard.GamePlay.GameState
@@ -11,15 +14,20 @@ namespace PlayingCard.GamePlay.GameState
     {
         public override GameState ActiveState => GameState.GameRoom;
 
+        [SerializeField]
+        List<GameObject> cardPrefabs;
+
         private IPublisher<StartGameMessage> startGamePublisher;
 
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
 
-            //GameManager gameManager = Container.Resolve<GameManager>();
-            //builder.RegisterInstance(gameManager.Game.Rule);
-            //builder.Register<HandRankingManager>(Lifetime.Scoped);
+            var deckDict = new Dictionary<string, GameObject>();
+            foreach (var cardPrefab in cardPrefabs)
+                deckDict.Add(cardPrefab.name, cardPrefab);
+
+            builder.RegisterInstance(deckDict);
         }
 
         /// <summary>

@@ -11,7 +11,11 @@ namespace PlayingCard.GamePlay.Configuration
     [CreateAssetMenu(menuName ="GameData/Game", order = 1)]
     public class Game : ScriptableObject
     {
+#if ODIN_INSPECTOR
         [MinValue(1)]
+#else
+        [Min(1)]
+#endif
         public int GameId = 1;
         public string GameName;
         /// <summary>
