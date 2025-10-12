@@ -16,6 +16,7 @@ namespace PlayingCard.GamePlay.PlayModels
     {
         public RoundState RoundState { get; private set; }
 
+        public string RoundName => gameRound.RoundName;
         public DealTarget DealTarget => gameRound.DealTarget;
         public DealFace DealFace => gameRound.DealFace;
         public int DealCardCount => gameRound.DealCardCount;

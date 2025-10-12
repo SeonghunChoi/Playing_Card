@@ -91,7 +91,7 @@ namespace PlayingCard.GamePlay.UI
             this.lastMaxBet = message.LastMaxBet;
             this.minRaise = message.MinRaise;
 
-            SetRoundInfo(message.Pot, message.Round);
+            SetRoundInfo(message.Pot, message.RoundName);
             SetPlayerInfo(message.player);
             ShowActionButtons(message.player, message.LastMaxBet, message.MinRaise, message.LastBetting);
         }
@@ -101,10 +101,10 @@ namespace PlayingCard.GamePlay.UI
         /// </summary>
         /// <param name="pot"></param>
         /// <param name="round"></param>
-        private void SetRoundInfo(ulong pot, int round)
+        private void SetRoundInfo(ulong pot, string roundName)
         {
             textPot.text = pot.ToString("N0");
-            textRound.text = $"Round: {round}";
+            textRound.text = roundName;
         }
 
         /// <summary>

@@ -46,16 +46,16 @@ namespace PlayingCard.GamePlay.Message
     public struct TurnStartMessage
     {
         public ulong MinRaise;
-        public int Round;
+        public string RoundName;
         public ulong Pot;
         public ulong LastMaxBet;
         public Betting LastBetting;
         public Player player;
 
-        public TurnStartMessage(ulong minRaise, int round, ulong pot, ulong lastMaxBet, Betting lastBetting, Player player)
+        public TurnStartMessage(ulong minRaise, string roundName, ulong pot, ulong lastMaxBet, Betting lastBetting, Player player)
         {
             this.MinRaise = minRaise;
-            this.Round = round;
+            this.RoundName = roundName;
             this.Pot = pot;
             this.LastMaxBet = lastMaxBet;
             this.LastBetting = lastBetting; 

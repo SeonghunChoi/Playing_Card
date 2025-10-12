@@ -3,6 +3,7 @@ using PlayingCard.GamePlay.Configuration;
 using PlayingCard.GamePlay.Configuration.Define;
 using PlayingCard.GamePlay.Message;
 using PlayingCard.Utilities;
+using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -319,7 +320,8 @@ namespace PlayingCard.GamePlay.PlayModels
             }
 
             var player = GetTurnPlayer(roundTurn);
-            turnStartPublisher.Publish(new TurnStartMessage(MinRaise, round, pot, lastMaxBet, lastBetting, player));
+            string roundName = currentRound.RoundName.IsNullOrWhitespace() ? $"Round {round}" : currentRound.RoundName; 
+            turnStartPublisher.Publish(new TurnStartMessage(MinRaise, roundName, pot, lastMaxBet, lastBetting, player));
         }
 
         void TrunAction(TurnActionMessage message)
