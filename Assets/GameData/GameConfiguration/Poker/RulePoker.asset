@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RulePoker
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRule
   MinPlayer: 1
-  MaxPlayer: 5
+  MaxPlayer: 4
   InitialCardsCount: 0
   MinRaise: 1
   Rounds:

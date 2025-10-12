@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d51664f94c755ca4f89033a464b175ca, type: 3}
   m_Name: PokerRound4
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
+  RoundName: River
   DealTarget: 1
-  DealFace: 0
+  DealFace: 1
   DealCardCount: 1
+  BurnCardCount: 1
+  DrawCardCount: 0

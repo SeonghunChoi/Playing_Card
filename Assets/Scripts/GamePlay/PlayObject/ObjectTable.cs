@@ -25,13 +25,36 @@ namespace PlayingCard.GamePlay.PlayObject
         private IObjectResolver resolver;
         private Dictionary<string, GameObject> cardDict;
         private IDisposable dealCardDisposable;
+        private IDisposable turnStartDisposable;
+        private IDisposable setPlayerCameraDisposable;
 
         [Inject]
-        public void Set(IObjectResolver resolver, Dictionary<string, GameObject> cardDict, ISubscriber<DealCardMessage> dealCardSubscriber)
+        public void Set(IObjectResolver resolver, Dictionary<string, GameObject> cardDict, 
+            ISubscriber<DealCardMessage> dealCardSubscriber,
+            ISubscriber<TurnStartMessage> turnStartSubscriber,
+            ISubscriber<SetPlayerCameraMessage> setPlayerCameraSubscriber)
         {
             this.resolver = resolver;
             this.cardDict = cardDict;
             dealCardDisposable = dealCardSubscriber.Subscribe(DealCard);
+            turnStartDisposable = turnStartSubscriber.Subscribe(TurnStart);
+            setPlayerCameraDisposable = setPlayerCameraSubscriber.Subscribe(SetPlayerCamera);
+        }
+
+        private void SetPlayerCamera(SetPlayerCameraMessage message)
+        {
+            var objPlayer = objectPlayers.Find(op => op.Id == message.player.Id);
+            var trCam = Camera.main.transform;
+            trCam.position = objPlayer.camPosition;
+            trCam.rotation = objPlayer.camRotation;
+        }
+
+        private void TurnStart(TurnStartMessage message)
+        {
+            var objPlayer = objectPlayers.Find(op => op.Id == message.player.Id);
+            var trCam = Camera.main.transform;
+            trCam.position = objPlayer.camPosition;
+            trCam.rotation = objPlayer.camRotation;
         }
 
         private void DealCard(DealCardMessage message)
@@ -159,6 +182,8 @@ namespace PlayingCard.GamePlay.PlayObject
         private void OnDestroy()
         {
             dealCardDisposable?.Dispose();
+            turnStartDisposable?.Dispose();
+            setPlayerCameraDisposable?.Dispose();
         }
     }
 }

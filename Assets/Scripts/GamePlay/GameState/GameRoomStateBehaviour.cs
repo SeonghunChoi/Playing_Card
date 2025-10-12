@@ -1,9 +1,11 @@
 ﻿using MessagePipe;
 using PlayingCard.GamePlay.Message;
+using PlayingCard.GamePlay.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace PlayingCard.GamePlay.GameState
 {
@@ -23,6 +25,8 @@ namespace PlayingCard.GamePlay.GameState
         {
             base.Configure(builder);
 
+            builder.RegisterComponentInHierarchy<UIConfirmBetMoney>();
+            builder.RegisterComponentInHierarchy<UIWinner>();
             var deckDict = new Dictionary<string, GameObject>();
             foreach (var cardPrefab in cardPrefabs)
                 deckDict.Add(cardPrefab.name, cardPrefab);

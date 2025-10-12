@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d51664f94c755ca4f89033a464b175ca, type: 3}
   m_Name: PokerRound1
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
+  RoundName: Pre-flop
   DealTarget: 0
   DealFace: 0
   DealCardCount: 2
+  BurnCardCount: 0
+  DrawCardCount: 0

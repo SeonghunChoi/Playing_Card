@@ -3,6 +3,7 @@ using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.PlayModels;
 using PlayingCard.Utilities.UI;
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,12 +39,14 @@ namespace PlayingCard.GamePlay.UI
         [SerializeField]
         Button buttonAllIn;
 
-        [SerializeField]
         UIConfirmBetMoney uiConfirmBetMoney;
+        UIWinner uiWinner;
 
         private IDisposable turnStartDisposable;
         private IPublisher<TurnActionMessage> turnActionPublisher;
         private IPublisher<ExitGameMessage> exitGamePublisher;
+        private IDisposable winnerDisposable;
+        private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
 
         /// <summary>
         /// 현재 TurnAction 플레이어
@@ -72,13 +75,21 @@ namespace PlayingCard.GamePlay.UI
 
         [Inject]
         public void Set(
+            UIConfirmBetMoney uiConfirmBetMoney,
+            UIWinner uiWinner,
             ISubscriber<TurnStartMessage> turnStartSubscriber,
             IPublisher<TurnActionMessage> turnActionPublisher,
-            IPublisher<ExitGameMessage> exitGamePublisher)
+            IPublisher<ExitGameMessage> exitGamePublisher,
+            ISubscriber<WinnerMessage> winnerSubscriber,
+            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher)
         {
+            this.uiConfirmBetMoney = uiConfirmBetMoney;
+            this.uiWinner = uiWinner;
             turnStartDisposable = turnStartSubscriber.Subscribe(StartTurn);
             this.turnActionPublisher = turnActionPublisher;
             this.exitGamePublisher = exitGamePublisher;
+            winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
+            this.setPlayerCameraPublisher = setPlayerCameraPublisher;
         }
 
         /// <summary>
@@ -199,9 +210,26 @@ namespace PlayingCard.GamePlay.UI
             turnActionPublisher.Publish(new TurnActionMessage(player, Betting.AllIn, player.Chips));
         }
 
+        private void ShowWinner(WinnerMessage message)
+        {
+            var winners = message.winners;
+            TaskShowWinner(winners);
+        }
+
+        private async void TaskShowWinner(Dictionary<Player, ulong> winners)
+        {
+            foreach (var player in winners.Keys)
+            {
+                setPlayerCameraPublisher.Publish(new SetPlayerCameraMessage(player));
+                ulong chips = winners[player];
+                await uiWinner.ShowWinner(player, chips);
+            }
+        }
+
         private void OnDestroy()
         {
             turnStartDisposable?.Dispose();
+            winnerDisposable?.Dispose();
         }
     }
 }

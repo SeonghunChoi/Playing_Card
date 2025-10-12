@@ -91,4 +91,24 @@ namespace PlayingCard.GamePlay.Message
             this.player = player;
         }
     }
+
+    public struct WinnerMessage
+    {
+        public Dictionary<Player, ulong> winners;
+
+        public WinnerMessage(Dictionary<Player, ulong> winners)
+        {
+            this.winners = winners;
+        }
+    }
+
+    public struct SetPlayerCameraMessage
+    {
+        public Player player;
+
+        public SetPlayerCameraMessage(Player player)
+        {
+            this.player = player;
+        }
+    }
 }

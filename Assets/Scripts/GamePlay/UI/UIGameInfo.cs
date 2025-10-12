@@ -1,8 +1,8 @@
 ﻿using MessagePipe;
 using PlayingCard.GamePlay.Message;
 using System;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 namespace PlayingCard.GamePlay.UI
@@ -10,10 +10,10 @@ namespace PlayingCard.GamePlay.UI
     public class UIGameInfo : MonoBehaviour
     {
         [SerializeField]
-        TextMeshProUGUI textGameName;
+        Text textGameName;
 
         [SerializeField]
-        TextMeshProUGUI textGameDesc;
+        Text textGameDesc;
 
         private IDisposable selectGameDisposalbe;
 

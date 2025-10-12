@@ -47,6 +47,7 @@ namespace PlayingCard.GamePlay.PlayModels
         private readonly IPublisher<TurnStartMessage> turnStartPublisher;
         private readonly IDisposable turnActionDisposable;
         private readonly IPublisher<DealCardMessage> dealCardPublisher;
+        private readonly IPublisher<WinnerMessage> winnerPublisher;
 
         System.Random random = new System.Random();
 
@@ -60,7 +61,8 @@ namespace PlayingCard.GamePlay.PlayModels
             IPublisher<EndGameMessage> endGamePublisher,
             IPublisher<TurnStartMessage> turnStartPublisher,
             ISubscriber<TurnActionMessage> turnActionSubscriber,
-            IPublisher<DealCardMessage> dealCardPublisher)
+            IPublisher<DealCardMessage> dealCardPublisher,
+            IPublisher<WinnerMessage> winnerPublisher)
         {
             this.rankingManager = rankingManager;
             startGameDisposable = startGameSubscriber.Subscribe(StartGame);
@@ -69,6 +71,7 @@ namespace PlayingCard.GamePlay.PlayModels
             this.turnStartPublisher = turnStartPublisher;
             turnActionDisposable = turnActionSubscriber.Subscribe(TrunAction);
             this.dealCardPublisher = dealCardPublisher;
+            this.winnerPublisher = winnerPublisher;
         }
 
         private void StartGame(StartGameMessage message)
@@ -436,12 +439,16 @@ namespace PlayingCard.GamePlay.PlayModels
 #endif
             ulong split = pot / (ulong)winners.Count;
             ulong remainder = pot % (ulong)winners.Count;
-            Debug.Log($"split:{split}, remainder:{remainder}");
+            Dictionary<Player, ulong> winnerChips = new Dictionary<Player, ulong>();
             for (int i = 0; i < winners.Count; i++)
             {
-                winners[i].ApplyWinChips(split);
-                if (i < (int)remainder) winners[i].ApplyWinChips(1); // 잔여칩 할당
+                ulong winChips = 0;
+                winChips += split;
+                if (i < (int)remainder) winChips++; // 잔여칩 할당
+                winners[i].ApplyWinChips(winChips);
+                winnerChips.Add(winners[i], winChips);
             }
+            winnerPublisher.Publish(new WinnerMessage(winnerChips));
         }
 
         public void Dispose()

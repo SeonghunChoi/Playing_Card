@@ -94,7 +94,6 @@ namespace PlayingCard.GamePlay.UI
             Show();
             tcs = new TaskCompletionSource<ulong>();
             ulong value = await tcs.Task;
-            Hide();
             return value;
         }
 
@@ -136,6 +135,7 @@ namespace PlayingCard.GamePlay.UI
         private void OnClickYes()
         {
             tcs.TrySetResult(bet);
+            Hide();
         }
 
         private void OnClickNo()

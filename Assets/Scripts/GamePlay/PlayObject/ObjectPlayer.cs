@@ -9,6 +9,15 @@ namespace PlayingCard.GamePlay.PlayObject
     {
         public int Id;
 
+        public Vector3 camPosition
+        {
+            get { return trCameraPosition.position; }
+        }
+        public Quaternion camRotation
+        {
+            get { return trCameraPosition.rotation; }
+        }
+
         [SerializeField]
         Transform trCameraPosition;
 

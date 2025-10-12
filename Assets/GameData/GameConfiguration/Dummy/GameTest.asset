@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.Game
   GameId: 2
   GameName: Test
+  GameDescription: "\uD14C\uC2A4\uD2B8\uC6A9 \uAC8C\uC784"
   Deck: {fileID: 11400000, guid: afb56d15caabe2d4c9f63797eabfe940, type: 2}
   Rule: {fileID: 11400000, guid: dd4b8066687af7e4cb55d8a454aa0253, type: 2}
