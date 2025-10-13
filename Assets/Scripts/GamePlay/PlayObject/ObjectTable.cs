@@ -27,18 +27,36 @@ namespace PlayingCard.GamePlay.PlayObject
         private IDisposable dealCardDisposable;
         private IDisposable turnStartDisposable;
         private IDisposable setPlayerCameraDisposable;
+        private IDisposable winnerDisposable;
 
         [Inject]
         public void Set(IObjectResolver resolver, Dictionary<string, GameObject> cardDict, 
             ISubscriber<DealCardMessage> dealCardSubscriber,
             ISubscriber<TurnStartMessage> turnStartSubscriber,
-            ISubscriber<SetPlayerCameraMessage> setPlayerCameraSubscriber)
+            ISubscriber<SetPlayerCameraMessage> setPlayerCameraSubscriber,
+            ISubscriber<WinnerMessage> winnerSubscriber)
         {
             this.resolver = resolver;
             this.cardDict = cardDict;
             dealCardDisposable = dealCardSubscriber.Subscribe(DealCard);
             turnStartDisposable = turnStartSubscriber.Subscribe(TurnStart);
             setPlayerCameraDisposable = setPlayerCameraSubscriber.Subscribe(SetPlayerCamera);
+            winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
+        }
+
+        private void ShowWinner(WinnerMessage message)
+        {
+            for (int i = 0; i < trComunityPoint.childCount; i++)
+            {
+                var child = trComunityPoint.GetChild(i);
+                Destroy(child.gameObject);
+            }
+
+            for (int i = 0; i < objectPlayers.Count; i++)
+            {
+                var player = objectPlayers[i];
+                player.ResetGame();
+            }
         }
 
         private void SetPlayerCamera(SetPlayerCameraMessage message)
@@ -184,6 +202,7 @@ namespace PlayingCard.GamePlay.PlayObject
             dealCardDisposable?.Dispose();
             turnStartDisposable?.Dispose();
             setPlayerCameraDisposable?.Dispose();
+            winnerDisposable?.Dispose();
         }
     }
 }

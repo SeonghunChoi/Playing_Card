@@ -90,6 +90,21 @@ namespace PlayingCard.GamePlay.PlayModels
             SetState(PlayerState.Waiting);
         }
 
+        public void BreakGame()
+        {
+            Chips += Bet;
+            ResetGame();
+        }
+
+        public void ResetGame()
+        {
+            Bet = 0;
+            State = PlayerState.Waiting;
+
+            Hands.Clear();
+            Board.Clear();
+        }
+
         /// <summary>
         /// 플레이어의 상태를 바꾼다.
         /// </summary>
@@ -103,7 +118,9 @@ namespace PlayingCard.GamePlay.PlayModels
             }
 
             if (State == PlayerState.Folded)
+            {
                 return;
+            }
 
             if (state == PlayerState.Waiting)
             {

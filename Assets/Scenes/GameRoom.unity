@@ -6637,7 +6637,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.PlayObject.ObjectPlayer
   Id: 2
   trCameraPosition: {fileID: 1942259382}
-  trBardPoint: {fileID: 234924442}
+  trBoardPoint: {fileID: 234924442}
   trHandPoint: {fileID: 955105480}
 --- !u!1001 &658608881
 PrefabInstance:
@@ -9082,7 +9082,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.PlayObject.ObjectPlayer
   Id: 1
   trCameraPosition: {fileID: 1937511103}
-  trBardPoint: {fileID: 960123987}
+  trBoardPoint: {fileID: 960123987}
   trHandPoint: {fileID: 1871137438}
 --- !u!1001 &852314604
 PrefabInstance:
@@ -12069,10 +12069,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.PlayObject.ObjectTable
   trComunityPoint: {fileID: 1564303827}
   objectPlayers:
-  - {fileID: 1517594907}
   - {fileID: 847085199}
   - {fileID: 645548160}
   - {fileID: 1805931024}
+  - {fileID: 1517594907}
 --- !u!1 &1145911301
 GameObject:
   m_ObjectHideFlags: 0
@@ -16812,7 +16812,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.PlayObject.ObjectPlayer
   Id: 4
   trCameraPosition: {fileID: 1765234089}
-  trBardPoint: {fileID: 1191951442}
+  trBoardPoint: {fileID: 1191951442}
   trHandPoint: {fileID: 1736506982}
 --- !u!1001 &1521177552
 PrefabInstance:
@@ -19579,7 +19579,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.PlayObject.ObjectPlayer
   Id: 3
   trCameraPosition: {fileID: 324481389}
-  trBardPoint: {fileID: 1006803478}
+  trBoardPoint: {fileID: 1006803478}
   trHandPoint: {fileID: 385091063}
 --- !u!1001 &1807017761
 PrefabInstance:

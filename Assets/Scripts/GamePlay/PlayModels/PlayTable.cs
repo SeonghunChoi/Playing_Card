@@ -45,7 +45,7 @@ namespace PlayingCard.GamePlay.PlayModels
 
         private readonly IDisposable startGameDisposable;
         private readonly IDisposable exitGameDisposable;
-        private readonly IPublisher<EndGameMessage> endGamePublisher;
+        private readonly IDisposable endGameDisposable;
         private readonly IPublisher<TurnStartMessage> turnStartPublisher;
         private readonly IDisposable turnActionDisposable;
         private readonly IPublisher<DealCardMessage> dealCardPublisher;
@@ -60,7 +60,7 @@ namespace PlayingCard.GamePlay.PlayModels
             HandRankingManager rankingManager,
             ISubscriber<StartGameMessage> startGameSubscriber,
             ISubscriber<ExitGameMessage> exitGameSubscriber,
-            IPublisher<EndGameMessage> endGamePublisher,
+            ISubscriber<EndGameMessage> endGameSubscriber,
             IPublisher<TurnStartMessage> turnStartPublisher,
             ISubscriber<TurnActionMessage> turnActionSubscriber,
             IPublisher<DealCardMessage> dealCardPublisher,
@@ -69,7 +69,7 @@ namespace PlayingCard.GamePlay.PlayModels
             this.rankingManager = rankingManager;
             startGameDisposable = startGameSubscriber.Subscribe(StartGame);
             exitGameDisposable = exitGameSubscriber.Subscribe(ExitGame);
-            this.endGamePublisher = endGamePublisher;
+            endGameDisposable = endGameSubscriber.Subscribe(EndGame);
             this.turnStartPublisher = turnStartPublisher;
             turnActionDisposable = turnActionSubscriber.Subscribe(TrunAction);
             this.dealCardPublisher = dealCardPublisher;
@@ -102,28 +102,8 @@ namespace PlayingCard.GamePlay.PlayModels
                 players.Add(new Player(i + 1, 1000));
             }
 
-            ResetTable();
-        }
-
-        public void ResetTable()
-        {
-            dealerIdx = -1; // 첫 플레이 시작은 딜러가 없는 상태
-
             if (cards == null) cards = new List<Card>();
             else cards.Clear();
-
-            if (deck == null) deck = new Queue<Card>();
-            else deck.Clear();
-            if (communityCard == null) communityCard = new List<Card>();
-            else communityCard.Clear();
-
-            lastMaxBet = 0;
-            pot = 0;
-            sidePot = 0;
-            round = 1;
-            lastBetting = Betting.Fold;
-
-            SetCurrentRound();
 
             var suits = game.Deck.SuitList;
 
@@ -145,6 +125,26 @@ namespace PlayingCard.GamePlay.PlayModels
             {
                 cards.Add(new Card(Suit.Spades, Rank.None, false, true));
             }
+
+            ResetTable();
+        }
+
+        public void ResetTable()
+        {
+            dealerIdx = -1; // 첫 플레이 시작은 딜러가 없는 상태
+
+            if (deck == null) deck = new Queue<Card>();
+            else deck.Clear();
+            if (communityCard == null) communityCard = new List<Card>();
+            else communityCard.Clear();
+
+            lastMaxBet = 0;
+            pot = 0;
+            sidePot = 0;
+            round = 1;
+            lastBetting = Betting.Fold;
+
+            SetCurrentRound();
 
             Shuffle(cards, 100);
 
@@ -216,7 +216,6 @@ namespace PlayingCard.GamePlay.PlayModels
                     {
                         // 라운드 정리.
                         var playables = players.FindAll(p => p.State.IsPlayable());
-
                         for (int i = 0; i < playables.Count; i++)
                         {
                             var player = playables[i];
@@ -334,8 +333,8 @@ namespace PlayingCard.GamePlay.PlayModels
                     }
                     else
                     {
-                        // 더이상 나눠줄 카드가 없으므로 게임을 끝낸다.
-                        endGamePublisher.Publish(new EndGameMessage());
+                        BreakGame();
+                        return;
                     }
                 }
                 communityCard.AddRange(dealBuffer);
@@ -367,9 +366,8 @@ namespace PlayingCard.GamePlay.PlayModels
                         else
                         {
                             // 더이상 나눠줄 카드가 없으므로 게임을 끝낸다.
-                            endGamePublisher.Publish(new EndGameMessage());
-                            dealIdx = dealerIdx;
-                            break;
+                            BreakGame();
+                            return;
                         }
                         dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
                         // 다음 플레이어로 변경
@@ -606,10 +604,43 @@ namespace PlayingCard.GamePlay.PlayModels
             winnerPublisher.Publish(new WinnerMessage(winnerChips));
         }
 
+        private void BreakGame()
+        {
+            var playables = players.FindAll(p => p.Chips > 0);
+            for (int i = 0; i < playables.Count; i++)
+            {
+                var player = playables[i];
+                player.BreakGame();
+            }
+
+            ResetTable();
+            PlayRound();
+        }
+
+        private void EndGame(EndGameMessage message)
+        {
+            var playables = players.FindAll(p => p.Chips > 0);
+            if (playables.Count <= 1)
+            {
+                Debug.Log("Win");
+                return;
+            }
+            // 플레이어들 상태 정리
+            for (int i = 0; i < playables.Count; i++)
+            {
+                var player = playables[i];
+                player.ResetGame();
+            }
+
+            ResetTable();
+            PlayRound();
+        }
+
         public void Dispose()
         {
             startGameDisposable?.Dispose();
             exitGameDisposable?.Dispose();
+            endGameDisposable?.Dispose();
             turnActionDisposable?.Dispose();
         }
     }

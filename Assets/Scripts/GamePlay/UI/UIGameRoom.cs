@@ -50,6 +50,7 @@ namespace PlayingCard.GamePlay.UI
         private IPublisher<ExitGameMessage> exitGamePublisher;
         private IDisposable winnerDisposable;
         private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
+        private IPublisher<EndGameMessage> endGamePublisher;
 
         /// <summary>
         /// 현재 TurnAction 플레이어
@@ -84,7 +85,8 @@ namespace PlayingCard.GamePlay.UI
             IPublisher<TurnActionMessage> turnActionPublisher,
             IPublisher<ExitGameMessage> exitGamePublisher,
             ISubscriber<WinnerMessage> winnerSubscriber,
-            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher)
+            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher,
+            IPublisher<EndGameMessage> endGamePublisher)
         {
             this.uiConfirmBetMoney = uiConfirmBetMoney;
             this.uiWinner = uiWinner;
@@ -93,6 +95,7 @@ namespace PlayingCard.GamePlay.UI
             this.exitGamePublisher = exitGamePublisher;
             winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
             this.setPlayerCameraPublisher = setPlayerCameraPublisher;
+            this.endGamePublisher = endGamePublisher;
         }
 
         /// <summary>
@@ -235,7 +238,7 @@ namespace PlayingCard.GamePlay.UI
                 ulong chips = winners[player];
                 await uiWinner.ShowWinner(player, chips);
             }
-            
+            endGamePublisher.Publish(new EndGameMessage());
         }
 
         private void OnDestroy()
