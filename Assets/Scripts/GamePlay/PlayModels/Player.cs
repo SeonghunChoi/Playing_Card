@@ -23,22 +23,12 @@ namespace PlayingCard.GamePlay.PlayModels
         Waiting,    // 대기 중
         Playing,    // 현재 게임 중
         Folded,     // 폴드함
-        AllIn,      // 올인
         Checked,    // 체크함
+        Betted,     // 베트함
         Called,     // 콜함
         Raised,     // 레이즈함
+        AllIn,      // 올인
         Out         // 게임에서 탈락
-    }
-
-    /// <summary>
-    /// Player 역할
-    /// </summary>
-    public enum PlayerJob
-    {
-        Dealer,
-        SmallBlind,
-        BigBlind,
-        Normal,
     }
 
     /// <summary>
@@ -106,11 +96,14 @@ namespace PlayingCard.GamePlay.PlayModels
         /// <param name="state"></param>
         public void SetState(PlayerState state)
         {
-            if (Chips <= 0)
+            if (Chips <= 0 && state != PlayerState.AllIn)
             {
                 State = PlayerState.Out;
                 return;
             }
+
+            if (State == PlayerState.Folded)
+                return;
 
             if (state == PlayerState.Waiting)
             {
@@ -187,26 +180,19 @@ namespace PlayingCard.GamePlay.PlayModels
         /// <param name="state"></param>
         /// <param name="lastBetting"></param>
         /// <returns></returns>
-        public static bool IsBetable(this PlayerState state, Betting lastBetting)
+        public static bool HasActed(this PlayerState state)
         {
             bool result = false;
 
             switch (state)
             {
-                case PlayerState.Playing:
-                case PlayerState.AllIn:
-                    result = true;
-                    break;
+                case PlayerState.Folded:
                 case PlayerState.Checked:
-                    if (lastBetting > Betting.Check)
-                        result = true;
-                    break;
+                case PlayerState.Betted:
                 case PlayerState.Called:
-                    if (lastBetting > Betting.Call)
-                        result = true;
-                    break;
                 case PlayerState.Raised:
-                    result = true;
+                case PlayerState.AllIn:
+                    result = true; 
                     break;
                 default:
                     break;

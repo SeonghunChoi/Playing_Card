@@ -31,8 +31,10 @@ namespace PlayingCard.GamePlay.PlayModels
         /// </summary>
         List<Card> cards;
         List<Player> players;
-        int firstPlayerIdx;
-        int roundTurn;
+        int dealerIdx;
+        int smallBlindIdx;
+        int bigBlindIdx;
+        int currentPlayerIdx;
 
         Queue<Card> deck;
         List<Card> communityCard;
@@ -94,6 +96,19 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             this.game = game;
 
+            players = new List<Player>();
+            for (int i = 0; i < game.Rule.MaxPlayer; i++)
+            {
+                players.Add(new Player(i + 1, 1000));
+            }
+
+            ResetTable();
+        }
+
+        public void ResetTable()
+        {
+            dealerIdx = -1; // 첫 플레이 시작은 딜러가 없는 상태
+
             if (cards == null) cards = new List<Card>();
             else cards.Clear();
 
@@ -101,13 +116,6 @@ namespace PlayingCard.GamePlay.PlayModels
             else deck.Clear();
             if (communityCard == null) communityCard = new List<Card>();
             else communityCard.Clear();
-
-            players = new List<Player>();
-            for (int i = 0; i < game.Rule.MaxPlayer; i++)
-            {
-                players.Add(new Player(i + 1, 1000));
-            }
-            firstPlayerIdx = 0;
 
             lastMaxBet = 0;
             pot = 0;
@@ -178,6 +186,7 @@ namespace PlayingCard.GamePlay.PlayModels
 
         public void PlayRound()
         {
+            // 모든 라운드가 끝났다.
             if (currentRound == null)
             {
                 GameResolve();
@@ -189,9 +198,13 @@ namespace PlayingCard.GamePlay.PlayModels
                 // 카드를 나눠준다.
                 case RoundState.Deal:
                     {
-                        // 아무도 Action을 안했으므로
-                        roundTurn = 0;
+                        SetRole();
                         DealCard();
+                    }
+                    break;
+                case RoundState.Blind:
+                    {
+                        RunBlind();
                     }
                     break;
                 case RoundState.Bet:
@@ -202,14 +215,15 @@ namespace PlayingCard.GamePlay.PlayModels
                 case RoundState.Complete:
                     {
                         // 라운드 정리.
-                        for (int i = 0; i < players.Count; i++)
+                        var playables = players.FindAll(p => p.State.IsPlayable());
+
+                        for (int i = 0; i < playables.Count; i++)
                         {
-                            var player = players[i];
+                            var player = playables[i];
                             player.SetState(PlayerState.Waiting);
                         }
                         lastBetting = Betting.Fold;
                         lastMaxBet = 0;
-                        roundTurn = 0;
                         round++;
                         SetCurrentRound();
                         PlayRound();
@@ -217,6 +231,76 @@ namespace PlayingCard.GamePlay.PlayModels
                     break;
                 default:
                     break;
+            }
+        }
+
+        /// <summary>
+        /// 다음 베팅 플레이어를 구한다.
+        /// </summary>
+        /// <param name="turn">현재 플레이어 idx</param>
+        /// <returns></returns>
+        Player GetNextDealPlayer(int curIdx)
+        {
+            if (players.FindAll(p => p.State.IsPlayable()).Count == 1)
+                return null;
+            int idx = (curIdx + 1) % players.Count;
+            var player = players[idx];
+            if (!player.State.IsPlayable())
+                player = GetNextDealPlayer(idx);
+            return player;
+        }
+
+        /// <summary>
+        /// 다음 베팅 플레이어를 구한다.
+        /// </summary>
+        /// <param name="turn">현재 플레이어 idx</param>
+        /// <returns></returns>
+        Player GetNextBettingPlayer(int curIdx)
+        {
+            if (players.FindAll(p => !p.State.HasActed() && p.State.IsPlayable()).Count == 0)
+                return null;
+            int idx = (curIdx + 1) % players.Count;
+            var player = players[idx];
+            if (player.State.HasActed())
+                player = GetNextBettingPlayer(idx);
+            return player;
+        }
+
+        /// <summary>
+        /// 딜러를 정한다.
+        /// </summary>
+        void SetRole()
+        {
+            Player next = null;
+            if (dealerIdx == -1) // 첫 시작
+            {
+                dealerIdx = UnityEngine.Random.Range(0, players.Count);
+            }
+            else
+            {
+                next = GetNextDealPlayer(dealerIdx);
+                dealerIdx = players.IndexOf(next);
+            }
+
+            if (players.FindAll(p => p.State.IsPlayable()).Count == 2)
+            {
+                smallBlindIdx = dealerIdx;
+            }
+            else
+            {
+                next = GetNextDealPlayer(dealerIdx);
+                smallBlindIdx = players.IndexOf(next);
+            }
+            next = GetNextDealPlayer(smallBlindIdx);
+            bigBlindIdx = players.IndexOf(next);
+            if (currentRound.Blind > 0)
+            {
+                next = GetNextDealPlayer(bigBlindIdx);
+                currentPlayerIdx = players.IndexOf(next);
+            }
+            else
+            {
+                currentPlayerIdx = smallBlindIdx;
             }
         }
 
@@ -259,17 +343,16 @@ namespace PlayingCard.GamePlay.PlayModels
             }
             else
             {
-                for (int i = 0; i < players.Count; i++)
-                {
-                    Player player = GetTurnPlayer(i);
-                    if (player.State.IsPlayable() == false)
+                var playables = players.FindAll(p => p.State.IsPlayable());
+                int playerCount = playables.Count;
+                for (int i = 0; i < currentRound.DealCardCount; i++)
+                {   
+                    // sb 부터 나눠준다.
+                    int dealIdx = dealerIdx;
+                    for (int j = 0; j < playerCount; j++)
                     {
-                        continue;
-                    }
-
-                    dealBuffer.Clear();
-                    for (int j = 0; j < currentRound.DealCardCount; j++)
-                    {
+                        Player player = GetNextDealPlayer(dealIdx);
+                        dealBuffer.Clear();
                         if (deck.Count > 0)
                         {
                             var card = deck.Dequeue();
@@ -285,9 +368,14 @@ namespace PlayingCard.GamePlay.PlayModels
                         {
                             // 더이상 나눠줄 카드가 없으므로 게임을 끝낸다.
                             endGamePublisher.Publish(new EndGameMessage());
+                            dealIdx = dealerIdx;
+                            break;
                         }
+                        dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
+                        // 다음 플레이어로 변경
+                        player = GetNextDealPlayer(dealIdx);
+                        dealIdx = players.IndexOf(player);
                     }
-                    dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
                 }
             }
             // 카드를 모두 나누어 주었으므로 플레이어들 상태를 변경해 준다.
@@ -301,17 +389,31 @@ namespace PlayingCard.GamePlay.PlayModels
         }
 
         /// <summary>
-        /// 현재 Turn 인 플레이어를 반환 한다.
+        /// blind를 처리한다.
         /// </summary>
-        /// <param name="turn"></param>
-        /// <returns></returns>
-        Player GetTurnPlayer(int turn)
+        void RunBlind()
         {
-            int idx = firstPlayerIdx + turn;
-            if (idx >= players.Count)
-                idx = idx % players.Count;
+            ulong blind = currentRound.Blind;
+            ulong samllBlind = (blind / 2) + (blind % 2);
 
-            return players[idx];
+            if (blind != 0)
+            {
+                var sb = players[smallBlindIdx];
+                pot += samllBlind;
+                sb.ApplyBet(samllBlind);
+                sb.SetState(PlayerState.Playing);
+
+                var bb = players[bigBlindIdx];
+                pot += blind;
+                bb.ApplyBet(blind);
+                bb.SetState(PlayerState.Playing);
+
+                lastMaxBet = blind;
+                lastBetting = Betting.Raise;
+            }
+
+            currentRound.NextState();
+            PlayRound();
         }
 
         /// <summary>
@@ -326,14 +428,14 @@ namespace PlayingCard.GamePlay.PlayModels
                 return;
             }
 
-            if (players.Count(p => p.State.IsBetable(lastBetting)) == 0)
+            if (players.Count(p => !p.State.HasActed()) == 0)
             {
                 currentRound.NextState();
                 PlayRound();
                 return;
             }
 
-            var player = GetTurnPlayer(roundTurn);
+            var player = players[currentPlayerIdx];
             string roundName = currentRound.RoundName.IsNullOrWhitespace() ? $"Round {round}" : currentRound.RoundName; 
             turnStartPublisher.Publish(new TurnStartMessage(MinRaise, roundName, pot, lastMaxBet, lastBetting, player));
         }
@@ -371,32 +473,66 @@ namespace PlayingCard.GamePlay.PlayModels
                 case Betting.Check:
                     {
                         if (lastBetting < Betting.Check)
+                        {
                             lastBetting = Betting.Check;
+                        }
                         player.SetState(PlayerState.Checked);
                     }
                     break;
                 case Betting.Bet:
+                    {
+                        if (lastBetting < Betting.Bet)
+                        {
+                            lastBetting = Betting.Bet;
+                        }
+                        var checkPlayers = players.FindAll(p => p.State.HasActed() && p.State < PlayerState.Betted);
+                        for (int i = 0; i < checkPlayers.Count; i++)
+                        {
+                            checkPlayers[i].SetState(PlayerState.Playing);
+                        }  
+                        player.SetState(PlayerState.Betted);
+                    }
+                    break;
                 case Betting.Call:
                     {
                         if (lastBetting < Betting.Call)
+                        {
                             lastBetting = Betting.Call;
+                        }
+                        var checkPlayers = players.FindAll(p => p.State.HasActed() && p.State < PlayerState.Called);
+                        for (int i = 0; i < checkPlayers.Count; i++)
+                        {
+                            checkPlayers[i].SetState(PlayerState.Playing);
+                        }
                         player.SetState(PlayerState.Called);
                     }
                     break;
                 case Betting.Raise:
                     {
                         if (lastBetting < Betting.Raise)
+                        {
                             lastBetting = Betting.Raise;
+                        }
+                        var checkPlayers = players.FindAll(p => p.State.HasActed() && p.State < PlayerState.Raised);
+                        for (int i = 0; i < checkPlayers.Count; i++)
+                        {
+                            checkPlayers[i].SetState(PlayerState.Playing);
+                        }
                         player.SetState(PlayerState.Raised);
                     }
                     break;
                 case Betting.AllIn:
+                    {
+                        player.SetState(PlayerState.AllIn);
+                    }
                     break;
                 default:
                     break;
             }
 
-            roundTurn++;
+            var next = GetNextBettingPlayer(currentPlayerIdx);
+            if (next != null)
+                currentPlayerIdx = players.IndexOf(next);
             RunBetting();
         }
 

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PokerRound3
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
   RoundName: Turn
+  Blind: 0
   DealTarget: 1
   DealFace: 1
   DealCardCount: 1

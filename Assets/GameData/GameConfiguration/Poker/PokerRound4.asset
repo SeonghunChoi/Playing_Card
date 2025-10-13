@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PokerRound4
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
   RoundName: River
+  Blind: 0
   DealTarget: 1
   DealFace: 1
   DealCardCount: 1

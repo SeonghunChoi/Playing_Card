@@ -5,6 +5,7 @@ namespace PlayingCard.GamePlay.PlayModels
     public enum RoundState
     {
         Deal,
+        Blind,
         Bet,
         Complete
     }
@@ -17,6 +18,7 @@ namespace PlayingCard.GamePlay.PlayModels
         public RoundState RoundState { get; private set; }
 
         public string RoundName => gameRound.RoundName;
+        public ulong Blind => gameRound.Blind;
         public DealTarget DealTarget => gameRound.DealTarget;
         public DealFace DealFace => gameRound.DealFace;
         public int DealCardCount => gameRound.DealCardCount;
@@ -37,6 +39,9 @@ namespace PlayingCard.GamePlay.PlayModels
             switch (RoundState)
             {
                 case RoundState.Deal:
+                    RoundState = RoundState.Blind;
+                    break;
+                case RoundState.Blind:
                     RoundState = RoundState.Bet;
                     break;
                 case RoundState.Bet:

@@ -136,12 +136,12 @@ namespace PlayingCard.GamePlay.UI
         {
             ulong callAmount = lastMaxBet - player.Bet;
 
-            buttonFold.gameObject.SetActive(player.State.IsBetable(lastBetting));
-            buttonCheck.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount == 0);
-            buttonBet.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount == 0 && lastMaxBet == 0);
-            buttonCall.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Chips >= callAmount);
-            buttonRaise.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Chips > callAmount + minRaise);
-            buttonAllIn.gameObject.SetActive(player.State.IsBetable(lastBetting) && callAmount > 0 && player.Chips > 0);
+            buttonFold.gameObject.SetActive(!player.State.HasActed());
+            buttonCheck.gameObject.SetActive(!player.State.HasActed() && callAmount == 0);
+            buttonBet.gameObject.SetActive(!player.State.HasActed() && callAmount == 0 && lastMaxBet == 0);
+            buttonCall.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips >= callAmount);
+            buttonRaise.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > callAmount + minRaise);
+            buttonAllIn.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > 0);
         }
 
         private void OnClickExit()
@@ -235,6 +235,7 @@ namespace PlayingCard.GamePlay.UI
                 ulong chips = winners[player];
                 await uiWinner.ShowWinner(player, chips);
             }
+            
         }
 
         private void OnDestroy()

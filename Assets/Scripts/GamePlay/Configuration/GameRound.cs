@@ -27,6 +27,7 @@ namespace PlayingCard.GamePlay.Configuration
     public class GameRound : ScriptableObject
     {
         public string RoundName;
+        public ulong Blind = 10;
         public DealTarget DealTarget = DealTarget.Player;
         public DealFace DealFace = DealFace.FaceUp;
         public int DealCardCount = 1;

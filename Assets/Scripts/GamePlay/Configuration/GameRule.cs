@@ -24,7 +24,7 @@ namespace PlayingCard.GamePlay.Configuration
 #endif
         public int MaxPlayer = 2;
         public int InitialCardsCount = 0;
-        public ulong MinRaise = 1;
+        public ulong MinRaise = 20;
         /// <summary>
         /// 라운드별 룰
         /// </summary>
