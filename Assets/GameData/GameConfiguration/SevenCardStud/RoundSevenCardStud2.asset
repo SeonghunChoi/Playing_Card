@@ -10,12 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d51664f94c755ca4f89033a464b175ca, type: 3}
-  m_Name: PokerRound3
+  m_Name: RoundSevenCardStud2
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
-  RoundName: Turn
+  RoundName: 4th St
   Blind: 0
-  DealTarget: 1
-  DealFace: 1
-  DealCardCount: 1
   BurnCardCount: 1
   DrawCardCount: 0
+  DealCards:
+  - {fileID: 11400000, guid: ea44e946313ab5b4a8a23d7e2a1b8c9c, type: 2}

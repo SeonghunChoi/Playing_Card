@@ -1,4 +1,5 @@
 ﻿using PlayingCard.GamePlay.Configuration;
+using System.Collections.Generic;
 
 namespace PlayingCard.GamePlay.PlayModels
 {
@@ -19,9 +20,10 @@ namespace PlayingCard.GamePlay.PlayModels
 
         public string RoundName => gameRound.RoundName;
         public ulong Blind => gameRound.Blind;
-        public DealTarget DealTarget => gameRound.DealTarget;
-        public DealFace DealFace => gameRound.DealFace;
-        public int DealCardCount => gameRound.DealCardCount;
+        //public DealTarget DealTarget => gameRound.DealTarget;
+        //public DealFace DealFace => gameRound.DealFace;
+        //public int DealCardCount => gameRound.DealCardCount;
+        public List<DealCardInfo> DealCards => gameRound.DealCards;
         public int BurnCardCount => gameRound.BurnCardCount;
         public int DrawCardCount => gameRound.DrawCardCount;
 

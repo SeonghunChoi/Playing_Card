@@ -45,13 +45,13 @@ namespace PlayingCard.GamePlay.PlayObject
         /// 카드 프리팹을 받아 Container 에 등록한다.
         /// </summary>
         /// <param name="objCard"></param>
-        /// <param name="isHand"></param>
-        public void AddCard(GameObject objCard, bool isHand)
+        /// <param name="isBoard"></param>
+        public void AddCard(GameObject objCard, bool isBoard)
         {
-            if (isHand)
-                objCard.transform.SetParent(trHandPoint, false);
-            else
+            if (isBoard)
                 objCard.transform.SetParent(trBoardPoint, false);
+            else
+                objCard.transform.SetParent(trHandPoint, false);
             objCard.transform.localScale = Vector3.one;
             objCard.transform.localPosition = Vector3.zero;
         }

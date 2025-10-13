@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d51664f94c755ca4f89033a464b175ca, type: 3}
-  m_Name: PokerRound1
+  m_Name: RoundSevenCardStud5
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRound
-  RoundName: Pre-flop
-  DealTarget: 0
-  DealFace: 0
-  DealCardCount: 2
-  BurnCardCount: 0
+  RoundName: 7th St
+  Blind: 0
+  BurnCardCount: 1
   DrawCardCount: 0
+  DealCards:
+  - {fileID: 11400000, guid: 84aafe439661e7e45a157900aa713e80, type: 2}

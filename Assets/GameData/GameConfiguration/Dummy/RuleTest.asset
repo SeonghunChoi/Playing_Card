@@ -10,14 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05ef73fd09938b44cb94a5b24c2512e1, type: 3}
-  m_Name: RulePoker
+  m_Name: RuleTest
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRule
   MinPlayer: 1
-  MaxPlayer: 4
+  MaxPlayer: 2
   InitialCardsCount: 0
   MinRaise: 1
   Rounds:
-  - {fileID: 11400000, guid: 023daf134244222429c02a6e6322ef4d, type: 2}
-  - {fileID: 11400000, guid: 03877a4480b9d984fb089eec8812f6ff, type: 2}
-  - {fileID: 11400000, guid: 15c58264c66c3c5409ffb3249bd62ddf, type: 2}
-  - {fileID: 11400000, guid: 705b5766d9193984595e62b78b51b134, type: 2}
+  - {fileID: 11400000, guid: df9258cc2dd98e44ba1e9882da8c6330, type: 2}

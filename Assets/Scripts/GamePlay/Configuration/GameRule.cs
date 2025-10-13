@@ -18,9 +18,9 @@ namespace PlayingCard.GamePlay.Configuration
 #endif
         public int MinPlayer = 1;
 #if ODIN_INSPECTOR
-        [MinValue(2), MaxValue(4)]
+        [MinValue(2), MaxValue(8)]
 #else
-        [Range(2,4)]
+        [Range(2,8)]
 #endif
         public int MaxPlayer = 2;
         public int InitialCardsCount = 0;

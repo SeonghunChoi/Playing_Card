@@ -316,17 +316,20 @@ namespace PlayingCard.GamePlay.PlayModels
                     deck.Dequeue();
                 }
             }
-            if (currentRound.DealTarget == DealTarget.Table)
+
+            var dealCards = currentRound.DealCards;
+            for (int i = 0; i < dealCards.Count; i++)
             {
-                dealBuffer.Clear();
-                for (int i = 0; i < currentRound.DealCardCount; i++)
+                var dealCard = dealCards[i];
+                if (dealCard.DealTarget == DealTarget.Table)
                 {
+                    dealBuffer.Clear();
                     if (deck.Count > 0)
                     {
                         var card = deck.Dequeue();
-                        if (currentRound.DealFace == DealFace.FaceUp && card.IsFaceUp == false)
+                        if (dealCard.DealFace == DealFace.FaceUp && card.IsFaceUp == false)
                             card.Flip();
-                        else if (currentRound.DealFace == DealFace.FaceDown && card.IsFaceUp)
+                        else if (dealCard.DealFace == DealFace.FaceDown && card.IsFaceUp)
                             card.Flip();
 
                         dealBuffer.Add(card);
@@ -336,17 +339,13 @@ namespace PlayingCard.GamePlay.PlayModels
                         BreakGame();
                         return;
                     }
+                    communityCard.AddRange(dealBuffer);
+                    dealCardPublisher.Publish(new DealCardMessage(dealBuffer, null));
                 }
-                communityCard.AddRange(dealBuffer);
-                dealCardPublisher.Publish(new DealCardMessage(dealBuffer, null));
-            }
-            else
-            {
-                var playables = players.FindAll(p => p.State.IsPlayable());
-                int playerCount = playables.Count;
-                for (int i = 0; i < currentRound.DealCardCount; i++)
-                {   
-                    // sb 부터 나눠준다.
+                else
+                {
+                    var playables = players.FindAll(p => p.State.IsPlayable());
+                    int playerCount = playables.Count;
                     int dealIdx = dealerIdx;
                     for (int j = 0; j < playerCount; j++)
                     {
@@ -355,9 +354,9 @@ namespace PlayingCard.GamePlay.PlayModels
                         if (deck.Count > 0)
                         {
                             var card = deck.Dequeue();
-                            if (currentRound.DealFace == DealFace.FaceUp && card.IsFaceUp == false)
+                            if (dealCard.DealFace == DealFace.FaceUp && card.IsFaceUp == false)
                                 card.Flip();
-                            else if (currentRound.DealFace == DealFace.FaceDown && card.IsFaceUp)
+                            else if (dealCard.DealFace == DealFace.FaceDown && card.IsFaceUp)
                                 card.Flip();
 
                             player.ReceiveCard(card);
