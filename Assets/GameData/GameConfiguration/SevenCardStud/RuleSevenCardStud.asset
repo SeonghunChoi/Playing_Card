@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RuleSevenCardStud
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRule
   MinPlayer: 1
-  MaxPlayer: 2
+  MaxPlayer: 8
   InitialCardsCount: 0
   MinRaise: 20
   Rounds:

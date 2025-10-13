@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameSevenCardStud
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.Game
   GameId: 2
-  GameName: Seven Card Stud
+  GameName: 7 Card Stud
   GameDescription: "\uC138\uBE10 \uCE74\uB4DC \uC2A4\uD130\uB4DC"
   Deck: {fileID: 11400000, guid: afb56d15caabe2d4c9f63797eabfe940, type: 2}
   Rule: {fileID: 11400000, guid: e60d1766c7b694047b7af9ddd44e52e3, type: 2}
