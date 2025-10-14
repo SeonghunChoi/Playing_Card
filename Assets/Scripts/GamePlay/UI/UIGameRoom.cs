@@ -25,6 +25,8 @@ namespace PlayingCard.GamePlay.UI
         [SerializeField]
         TextMeshProUGUI textPot;
         [SerializeField]
+        TextMeshProUGUI textMaxBet;
+        [SerializeField]
         TextMeshProUGUI textRound;
         [SerializeField]
         Button buttonExit;
@@ -138,6 +140,8 @@ namespace PlayingCard.GamePlay.UI
         private void ShowActionButtons(Player player, ulong lastMaxBet, ulong minRaise, Betting lastBetting)
         {
             ulong callAmount = lastMaxBet - player.Bet;
+
+            textMaxBet.text = lastMaxBet.ToString("N0");
 
             buttonFold.gameObject.SetActive(!player.State.HasActed());
             buttonCheck.gameObject.SetActive(!player.State.HasActed() && callAmount == 0);
