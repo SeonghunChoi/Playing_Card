@@ -1,14 +1,22 @@
-﻿using UnityEngine;
+﻿using PlayingCard.GamePlay.PlayModels;
+using UnityEngine;
 
 namespace PlayingCard.GamePlay.PlayObject
 {
     public class ObjectCard : MonoBehaviour
     {
-        PlayModels.Card card;
+        public Suit Suit;
+        public Rank Rank;
+        public bool IsWild;
 
-        public void Set(PlayModels.Card card)
+        public bool IsRim => rimEfect.activeSelf;
+
+        [SerializeField]
+        GameObject rimEfect;
+
+        public void SetRim(bool isOn)
         {
-            this.card = card;
+            rimEfect.SetActive(isOn);
         }
     }
 }

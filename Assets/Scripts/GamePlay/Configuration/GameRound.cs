@@ -11,6 +11,7 @@ namespace PlayingCard.GamePlay.Configuration
     {
         public string RoundName;
         public ulong Blind = 10;
+        public ulong Ante = 0;
         public int BurnCardCount = 0;
         public int DrawCardCount = 0;
         public List<DealCardInfo> DealCards;

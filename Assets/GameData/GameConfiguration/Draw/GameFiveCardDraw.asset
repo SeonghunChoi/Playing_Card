@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e456e2fbf4eb74da201b8e9f72cda2, type: 3}
+  m_Name: GameFiveCardDraw
+  m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.Game
+  GameId: 3
+  GameName: 5 Card Draw
+  GameDescription: "\uD30C\uC774\uBE0C \uCE74\uB4DC \uB4DC\uB85C\uC6B0"
+  Deck: {fileID: 11400000, guid: afb56d15caabe2d4c9f63797eabfe940, type: 2}
+  Rule: {fileID: 11400000, guid: 78586faacb611044c8cc601102cad1c5, type: 2}

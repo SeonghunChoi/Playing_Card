@@ -10,16 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05ef73fd09938b44cb94a5b24c2512e1, type: 3}
-  m_Name: RuleSevenCardStud
+  m_Name: RuleFiveCardDraw
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.GameRule
   MinPlayer: 1
-  MaxPlayer: 8
+  MaxPlayer: 4
   InitialCardsCount: 0
   MinRaise: 20
   Rounds:
-  - {fileID: 11400000, guid: de5b39762b5697245a5754c145f30173, type: 2}
-  - {fileID: 11400000, guid: d77af1a869a25b342a969144c27c4eb9, type: 2}
-  - {fileID: 11400000, guid: 9f2741c4a5c9bf84c8f7b66d5c7c21dc, type: 2}
-  - {fileID: 11400000, guid: a130cc447cba238458259768ba4caa79, type: 2}
-  - {fileID: 11400000, guid: 44c36de7bb803a0449c8121bfd0d9c74, type: 2}
-  - {fileID: 11400000, guid: 92a3ca38734888046b1841a86d27020f, type: 2}
+  - {fileID: 11400000, guid: ebc78b0cbbb446b4a9d4505ee5b3302b, type: 2}

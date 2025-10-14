@@ -592,7 +592,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2867979232727391055, guid: d9e2ce90b028b8c4bab135c28a888503, type: 3}
       propertyPath: GameList.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 2867979232727391055, guid: d9e2ce90b028b8c4bab135c28a888503, type: 3}
       propertyPath: 'GameList.Array.data[0]'
@@ -602,6 +602,10 @@ PrefabInstance:
       propertyPath: 'GameList.Array.data[1]'
       value: 
       objectReference: {fileID: 11400000, guid: 643d6ed3368842748ba7a753fac40eb4, type: 2}
+    - target: {fileID: 2867979232727391055, guid: d9e2ce90b028b8c4bab135c28a888503, type: 3}
+      propertyPath: 'GameList.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 04716683d8ee5ba4fb179521772365d7, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

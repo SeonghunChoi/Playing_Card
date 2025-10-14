@@ -1,9 +1,12 @@
-﻿using MessagePipe;
+﻿using Cysharp.Threading.Tasks;
+using MessagePipe;
 using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.PlayModels;
 using System;
 using System.Collections.Generic;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using VContainer;
 using VContainer.Unity;
 
@@ -12,7 +15,7 @@ namespace PlayingCard.GamePlay.PlayObject
     /// <summary>
     /// Game Room 의 GameObject 들을 관리
     /// </summary>
-    public class ObjectTable : MonoBehaviour
+    public class ObjectTable : MonoBehaviour, IPointerClickHandler
     {
         const float CardSpace = 1.8f;
 
@@ -28,13 +31,19 @@ namespace PlayingCard.GamePlay.PlayObject
         private IDisposable turnStartDisposable;
         private IDisposable setPlayerCameraDisposable;
         private IDisposable winnerDisposable;
+        private IDisposable drawResultDisposable;
+        private IPublisher<DrawCardSelectMessage> drawCardSelectPublisher;
+
+        private ObjectPlayer curPlayr;
 
         [Inject]
         public void Set(IObjectResolver resolver, Dictionary<string, GameObject> cardDict, 
             ISubscriber<DealCardMessage> dealCardSubscriber,
             ISubscriber<TurnStartMessage> turnStartSubscriber,
             ISubscriber<SetPlayerCameraMessage> setPlayerCameraSubscriber,
-            ISubscriber<WinnerMessage> winnerSubscriber)
+            ISubscriber<WinnerMessage> winnerSubscriber,
+            ISubscriber<DrawResultMessage> drawResultSubscriber,
+            IPublisher<DrawCardSelectMessage> drawCardSelectPublisher)
         {
             this.resolver = resolver;
             this.cardDict = cardDict;
@@ -42,6 +51,27 @@ namespace PlayingCard.GamePlay.PlayObject
             turnStartDisposable = turnStartSubscriber.Subscribe(TurnStart);
             setPlayerCameraDisposable = setPlayerCameraSubscriber.Subscribe(SetPlayerCamera);
             winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
+            drawResultDisposable = drawResultSubscriber.Subscribe(DrawResult);
+            this.drawCardSelectPublisher = drawCardSelectPublisher;
+        }
+
+        private void DrawResult(DrawResultMessage message)
+        {
+            var cards = message.cards;
+            var objectPlayer = objectPlayers.Find(op => op.Id == message.player.Id);
+            TaskDrawResult(cards, objectPlayer);
+        }
+
+        private async void TaskDrawResult(List<Card> cards, ObjectPlayer objectPlayer)
+        {
+            await objectPlayer.RemoveDrawAsync();
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                var card = CreateCard(GetCardName(cards[i]));
+                objectPlayer.AddCard(card, cards[i].IsFaceUp);
+            }
+            objectPlayer.SetCardPosition();
         }
 
         private void ShowWinner(WinnerMessage message)
@@ -69,10 +99,10 @@ namespace PlayingCard.GamePlay.PlayObject
 
         private void TurnStart(TurnStartMessage message)
         {
-            var objPlayer = objectPlayers.Find(op => op.Id == message.player.Id);
+            curPlayr = objectPlayers.Find(op => op.Id == message.player.Id);
             var trCam = Camera.main.transform;
-            trCam.position = objPlayer.camPosition;
-            trCam.rotation = objPlayer.camRotation;
+            trCam.position = curPlayr.camPosition;
+            trCam.rotation = curPlayr.camRotation;
         }
 
         private void DealCard(DealCardMessage message)
@@ -194,6 +224,24 @@ namespace PlayingCard.GamePlay.PlayObject
             {
                 var card = container.GetChild(i);
                 card.localPosition = new Vector3(startX + i * CardSpace, 0, 0);
+            }
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            int layerMask = 1 << LayerMask.NameToLayer("Card");
+            Ray ray = Camera.main.ScreenPointToRay(eventData.position);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100, layerMask))
+            {
+                var objCard = hit.collider.GetComponent<ObjectCard>();
+                if (objCard != null)
+                {
+                    if (curPlayr.HasHands(objCard))
+                    {
+                        drawCardSelectPublisher.Publish(new DrawCardSelectMessage(curPlayr, objCard));
+                    }
+                }
             }
         }
 

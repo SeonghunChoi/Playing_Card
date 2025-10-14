@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using PlayingCard.GamePlay.PlayModels;
+using UnityEngine;
 
 namespace PlayingCard.GamePlay.PlayObject
 {
@@ -54,6 +56,39 @@ namespace PlayingCard.GamePlay.PlayObject
                 objCard.transform.SetParent(trHandPoint, false);
             objCard.transform.localScale = Vector3.one;
             objCard.transform.localPosition = Vector3.zero;
+        }
+
+        public bool HasHands(ObjectCard card)
+        {
+            bool reslut = false;
+            int count = trHandPoint.childCount;
+            for (int i = 0; i < count; i++)
+            {
+                var child = trHandPoint.GetChild(i);
+                var objCard = child.GetComponent<ObjectCard>();
+
+                if (objCard == card)
+                {
+                    reslut = true;
+                    break;
+                }
+            }
+            return reslut;
+        }
+
+        public async UniTask RemoveDrawAsync()
+        {
+            int count = trHandPoint.childCount;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                var child = trHandPoint.GetChild(i);
+                var objCard = child.GetComponent<ObjectCard>();
+                if (objCard.IsRim)
+                {
+                    Destroy(child.gameObject);
+                }
+            }
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
         }
 
         /// <summary>

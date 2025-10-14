@@ -20,9 +20,7 @@ namespace PlayingCard.GamePlay.PlayModels
 
         public string RoundName => gameRound.RoundName;
         public ulong Blind => gameRound.Blind;
-        //public DealTarget DealTarget => gameRound.DealTarget;
-        //public DealFace DealFace => gameRound.DealFace;
-        //public int DealCardCount => gameRound.DealCardCount;
+        public ulong Ante => gameRound.Ante;
         public List<DealCardInfo> DealCards => gameRound.DealCards;
         public int BurnCardCount => gameRound.BurnCardCount;
         public int DrawCardCount => gameRound.DrawCardCount;

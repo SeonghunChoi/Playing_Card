@@ -1,5 +1,6 @@
 ﻿using PlayingCard.GamePlay.Configuration;
 using PlayingCard.GamePlay.PlayModels;
+using PlayingCard.GamePlay.PlayObject;
 using System.Collections.Generic;
 
 namespace PlayingCard.GamePlay.Message
@@ -118,6 +119,50 @@ namespace PlayingCard.GamePlay.Message
         public SetPlayerCameraMessage(Player player)
         {
             this.player = player;
+        }
+    }
+
+    public struct DrawCardSelectMessage
+    {
+        public ObjectPlayer objectPlayer;
+        public ObjectCard objectCard;
+
+        public DrawCardSelectMessage(ObjectPlayer objectPlayer, ObjectCard objectCard)
+        {
+            this.objectPlayer = objectPlayer;
+            this.objectCard = objectCard;
+        }
+    }
+
+    public struct DrawInfoMessage
+    {
+        public int DrawCardCount;
+
+        public DrawInfoMessage(int DrawCardCount)
+        {
+            this.DrawCardCount = DrawCardCount;
+        }
+    }
+
+    public struct DrawCardsMessage
+    {
+        public Player player;
+
+        public DrawCardsMessage(Player player)
+        {
+            this.player = player;
+        }
+    }
+
+    public struct DrawResultMessage
+    {
+        public Player player;
+        public List<Card> cards;
+
+        public DrawResultMessage(Player player, List<Card> cards)
+        {
+            this.player = player;
+            this.cards = cards;
         }
     }
 }

@@ -32,6 +32,9 @@ namespace PlayingCard.GamePlay.UI
         Button buttonExit;
 
         [SerializeField]
+        Button buttonDraw;
+
+        [SerializeField]
         Button buttonFold;
         [SerializeField]
         Button buttonCheck;
@@ -53,6 +56,8 @@ namespace PlayingCard.GamePlay.UI
         private IDisposable winnerDisposable;
         private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
         private IPublisher<EndGameMessage> endGamePublisher;
+        private IPublisher<DrawCardsMessage> drawCardsPublisher;
+        private IDisposable drawInfoDispasable;
 
         /// <summary>
         /// 현재 TurnAction 플레이어
@@ -71,6 +76,8 @@ namespace PlayingCard.GamePlay.UI
         {
             buttonExit.AddOnClickEvent(OnClickExit);
 
+            buttonDraw.AddOnClickEvent(OnClickDraw);
+
             buttonFold.AddOnClickEvent(OnClickFold);
             buttonCheck.AddOnClickEvent(OnClickCheck);
             buttonBet.AddOnClickEvent(OnClickBet);
@@ -88,7 +95,9 @@ namespace PlayingCard.GamePlay.UI
             IPublisher<ExitGameMessage> exitGamePublisher,
             ISubscriber<WinnerMessage> winnerSubscriber,
             IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher,
-            IPublisher<EndGameMessage> endGamePublisher)
+            IPublisher<EndGameMessage> endGamePublisher,
+            IPublisher<DrawCardsMessage> drawCardsPublisher,
+            ISubscriber<DrawInfoMessage> drawInfoSubscriber)
         {
             this.uiConfirmBetMoney = uiConfirmBetMoney;
             this.uiWinner = uiWinner;
@@ -98,6 +107,8 @@ namespace PlayingCard.GamePlay.UI
             winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
             this.setPlayerCameraPublisher = setPlayerCameraPublisher;
             this.endGamePublisher = endGamePublisher;
+            this.drawCardsPublisher = drawCardsPublisher;
+            drawInfoDispasable = drawInfoSubscriber.Subscribe(DrawInfo);
         }
 
         /// <summary>
@@ -149,11 +160,19 @@ namespace PlayingCard.GamePlay.UI
             buttonCall.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips >= callAmount);
             buttonRaise.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > callAmount + minRaise);
             buttonAllIn.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > 0);
+
+            buttonDraw.gameObject.SetActive(false);
         }
 
         private void OnClickExit()
         {
             exitGamePublisher.Publish(new ExitGameMessage());
+        }
+
+        private void OnClickDraw()
+        {
+            drawCardsPublisher.Publish(new DrawCardsMessage(player));
+            buttonDraw.gameObject.SetActive(false);
         }
 
         private void OnClickFold()
@@ -243,6 +262,11 @@ namespace PlayingCard.GamePlay.UI
                 await uiWinner.ShowWinner(player, chips);
             }
             endGamePublisher.Publish(new EndGameMessage());
+        }
+
+        private void DrawInfo(DrawInfoMessage message)
+        {
+            buttonDraw.gameObject.SetActive(message.DrawCardCount > 0);
         }
 
         private void OnDestroy()

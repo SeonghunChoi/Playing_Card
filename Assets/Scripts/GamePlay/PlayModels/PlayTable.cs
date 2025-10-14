@@ -50,6 +50,10 @@ namespace PlayingCard.GamePlay.PlayModels
         private readonly IDisposable turnActionDisposable;
         private readonly IPublisher<DealCardMessage> dealCardPublisher;
         private readonly IPublisher<WinnerMessage> winnerPublisher;
+        private readonly IPublisher<DrawInfoMessage> drawCardInfoPublisher;
+        private readonly IDisposable drawCardSelectDisposable;
+        private readonly IDisposable drawCardsDisposable;
+        private readonly IPublisher<DrawResultMessage> drawResultPublisher;
 
         System.Random random = new System.Random();
 
@@ -64,7 +68,11 @@ namespace PlayingCard.GamePlay.PlayModels
             IPublisher<TurnStartMessage> turnStartPublisher,
             ISubscriber<TurnActionMessage> turnActionSubscriber,
             IPublisher<DealCardMessage> dealCardPublisher,
-            IPublisher<WinnerMessage> winnerPublisher)
+            IPublisher<WinnerMessage> winnerPublisher,
+            IPublisher<DrawInfoMessage> drawCardInfoPublisher,
+            ISubscriber<DrawCardSelectMessage> drawCardSelectSubscriber,
+            ISubscriber<DrawCardsMessage> drawCardsSubscriber,
+            IPublisher<DrawResultMessage> drawResultPublisher)
         {
             this.rankingManager = rankingManager;
             startGameDisposable = startGameSubscriber.Subscribe(StartGame);
@@ -74,6 +82,10 @@ namespace PlayingCard.GamePlay.PlayModels
             turnActionDisposable = turnActionSubscriber.Subscribe(TrunAction);
             this.dealCardPublisher = dealCardPublisher;
             this.winnerPublisher = winnerPublisher;
+            this.drawCardInfoPublisher = drawCardInfoPublisher;
+            drawCardSelectDisposable = drawCardSelectSubscriber.Subscribe(DrawCardSelect);
+            drawCardsDisposable = drawCardsSubscriber.Subscribe(DrawCards);
+            this.drawResultPublisher = drawResultPublisher;
         }
 
         private void StartGame(StartGameMessage message)
@@ -392,8 +404,7 @@ namespace PlayingCard.GamePlay.PlayModels
         {
             ulong blind = currentRound.Blind;
             ulong samllBlind = (blind / 2) + (blind % 2);
-
-            if (blind != 0)
+            if (blind > 0)
             {
                 var sb = players[smallBlindIdx];
                 pot += samllBlind;
@@ -407,6 +418,20 @@ namespace PlayingCard.GamePlay.PlayModels
 
                 lastMaxBet = blind;
                 lastBetting = Betting.Raise;
+            }
+
+            ulong ante = currentRound.Ante;
+            if (ante > 0)
+            {
+                var playables = players.FindAll(p => p.Chips > ante);
+                for (int i = 0; i < playables.Count; i++)
+                {
+                    var player = playables[i];
+                    pot += ante;
+                    player.ApplyBet(ante);
+                    player.SetState(PlayerState.Checked);
+                }
+                lastMaxBet = ante;
             }
 
             currentRound.NextState();
@@ -533,6 +558,40 @@ namespace PlayingCard.GamePlay.PlayModels
             RunBetting();
         }
 
+        void DrawCardSelect(DrawCardSelectMessage message)
+        {
+            if (currentRound.DrawCardCount > 0)
+            {
+                var player = players.Find(p => p.Id == message.objectPlayer.Id);
+                if (player != null && !player.IsDraw)
+                {
+                    player.SelectDrawCard(message.objectCard, currentRound.DrawCardCount);
+                    drawCardInfoPublisher.Publish(new DrawInfoMessage(player.DrawsCount));
+                }
+            }
+        }
+
+        void DrawCards(DrawCardsMessage message)
+        {
+            var player = message.player;
+            List<Card> cards = new List<Card>();
+            if (player.DrawsCount > deck.Count)
+            {
+                // 더이상 나눠줄 카드가 없으므로 게임을 끝낸다.
+                BreakGame();
+                return;
+            }
+
+            for (int i = 0; i < player.DrawsCount; i++)
+            {
+                cards.Add(deck.Dequeue());
+            }
+
+            player.DrawCards(cards);
+
+            drawResultPublisher.Publish(new DrawResultMessage(player, cards));
+        }
+
         /// <summary>
         /// 여러명이 남은 상태에서 게임이 종료되었을 때 승자를 결정한다.
         /// </summary>
@@ -641,6 +700,8 @@ namespace PlayingCard.GamePlay.PlayModels
             exitGameDisposable?.Dispose();
             endGameDisposable?.Dispose();
             turnActionDisposable?.Dispose();
+            drawCardSelectDisposable?.Dispose();
+            drawCardsDisposable?.Dispose();
         }
     }
 }

@@ -44,6 +44,10 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterMessageBroker<DealCardMessage>(options);
             builder.RegisterMessageBroker<WinnerMessage>(options);
             builder.RegisterMessageBroker<SetPlayerCameraMessage>(options);
+            builder.RegisterMessageBroker<DrawCardSelectMessage>(options);
+            builder.RegisterMessageBroker<DrawInfoMessage>(options);
+            builder.RegisterMessageBroker<DrawCardsMessage>(options);
+            builder.RegisterMessageBroker<DrawResultMessage>(options);
 
             // Manager µî·Ï
             builder.RegisterInstance(GameList);

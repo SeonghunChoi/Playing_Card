@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PlayingCard.GamePlay.PlayObject;
+using System.Collections.Generic;
 
 namespace PlayingCard.GamePlay.PlayModels
 {
@@ -71,6 +72,9 @@ namespace PlayingCard.GamePlay.PlayModels
             }
         }
 
+        public int DrawsCount { get { return draws.Count; } }
+        public bool IsDraw { get { return isDraw; } }
+
         /// <summary>
         /// player가 가지고 있는 카드 중 비공개 카드
         /// </summary>
@@ -80,12 +84,16 @@ namespace PlayingCard.GamePlay.PlayModels
         /// </summary>
         public List<Card> Board = new List<Card>();
 
+        List<Card> draws = new List<Card>();
+        bool isDraw;
 
         public Player(int id, ulong chips)
         {
             Id = id;
             Chips = chips;
+
             Bet = 0;
+            isDraw = false;
 
             SetState(PlayerState.Waiting);
         }
@@ -99,10 +107,12 @@ namespace PlayingCard.GamePlay.PlayModels
         public void ResetGame()
         {
             Bet = 0;
+            isDraw = false;
             State = PlayerState.Waiting;
 
             Hands.Clear();
             Board.Clear();
+            draws.Clear();
         }
 
         /// <summary>
@@ -149,14 +159,56 @@ namespace PlayingCard.GamePlay.PlayModels
             Chips += chips;
         }
 
+        public void SelectDrawCard(ObjectCard objectCard, int drawCardCount)
+        {
+            Card card;
+            if (objectCard.IsWild)
+            {
+                card = Hands.Find(c => c.IsWild);
+            }
+            else
+            {
+                card = Hands.Find(c => c.Suit == objectCard.Suit && c.Rank == objectCard.Rank);
+            }
+
+            if (draws.Contains(card))
+            {
+                draws.Remove(card);
+                objectCard.SetRim(false);
+            }
+            else
+            {
+                if (draws.Count < drawCardCount)
+                {
+                    draws.Add(card);
+                    objectCard.SetRim(true);
+                }
+            }
+        }
+
+        public void DrawCards(List<Card> cards)
+        {
+            for (int i = 0; i < draws.Count; i++)
+            {
+                var draw = draws[i];
+                if (Hands.Contains(draw))
+                {
+                    Hands.Remove(draw);
+                }
+            }
+            draws.Clear();
+            Hands.AddRange(cards);
+            isDraw = true;
+        }
+
         /// <summary>
         /// 카드를 받는다.
         /// </summary>
         /// <param name="card"></param>
         public void ReceiveCard(Card card)
         {
-            if (card.IsFaceUp) Hands.Add(card);
-            else Board.Add(card);
+            if (card.IsFaceUp) Board.Add(card);
+            else Hands.Add(card); 
         }
     }
 
