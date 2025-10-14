@@ -17,6 +17,9 @@ namespace PlayingCard.GamePlay.UI
     public class UIGameRoom : MonoBehaviour
     {
         [SerializeField]
+        CanvasGroup canvas;
+
+        [SerializeField]
         TextMeshProUGUI textPlayerId;
         [SerializeField]
         TextMeshProUGUI textMoney;
@@ -197,11 +200,14 @@ namespace PlayingCard.GamePlay.UI
         {
             try
             {
+                canvas.interactable = false;
                 ulong bet = await uiConfirmBetMoney.GetBetChips(player, Betting.Bet, lastMaxBet, minRaise);
+                canvas.interactable = true;
                 turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Bet, bet));
             }
             catch (OperationCanceledException)
             {
+                canvas.interactable = true;
                 Debug.Log("Cancel");
             }
         }
@@ -224,12 +230,15 @@ namespace PlayingCard.GamePlay.UI
         {
             try
             {
+                canvas.interactable = false;
                 ulong callAmount = lastMaxBet - player.Bet;
                 ulong bet = await uiConfirmBetMoney.GetBetChips(player, Betting.Raise, callAmount + minRaise, minRaise);
+                canvas.interactable = true;
                 turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Raise, bet));
             }
             catch (OperationCanceledException)
             {
+                canvas.interactable = true;
                 Debug.Log("Cancel");
             }
         }
@@ -255,12 +264,14 @@ namespace PlayingCard.GamePlay.UI
         /// <param name="winners"></param>
         private async void TaskShowWinner(Dictionary<Player, ulong> winners)
         {
+            canvas.interactable = false;
             foreach (var player in winners.Keys)
             {
                 setPlayerCameraPublisher.Publish(new SetPlayerCameraMessage(player));
                 ulong chips = winners[player];
                 await uiWinner.ShowWinner(player, chips);
             }
+            canvas.interactable = true;
             endGamePublisher.Publish(new EndGameMessage());
         }
 

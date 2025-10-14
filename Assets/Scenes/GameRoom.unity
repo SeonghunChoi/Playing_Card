@@ -421,6 +421,7 @@ GameObject:
   m_Component:
   - component: {fileID: 16791341}
   - component: {fileID: 16791342}
+  - component: {fileID: 16791343}
   m_Layer: 5
   m_Name: GameRoom
   m_TagString: Untagged
@@ -465,6 +466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b140c51a1c1aafb45940a80d60763243, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.UI.UIGameRoom
+  canvas: {fileID: 16791343}
   textPlayerId: {fileID: 1704333398}
   textMoney: {fileID: 1199752493}
   textBet: {fileID: 674579268}
@@ -479,6 +481,18 @@ MonoBehaviour:
   buttonCall: {fileID: 1829823341}
   buttonRaise: {fileID: 905288959}
   buttonAllIn: {fileID: 484899657}
+--- !u!225 &16791343
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 16791340}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &18123988
 PrefabInstance:
   m_ObjectHideFlags: 0
