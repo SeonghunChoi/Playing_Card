@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using VContainer.Unity;
 
-namespace PlayingCard.GamePlay.Presenter.GameState
+namespace PlayingCard.GamePlay.Presenter.Gamestate
 {
     public enum GameState
     {
         MainMenu,
+        Lobby,
         GameRoom
     }
 

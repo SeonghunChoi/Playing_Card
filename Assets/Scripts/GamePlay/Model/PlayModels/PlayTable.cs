@@ -212,7 +212,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         void ExitGame()
         {
             game = null;
-            SceneLoaderWarpper.Instance.LoadScene(DefineScene.MAIN_MENU);
+            SceneLoaderWarpper.Instance.LoadScene(DefineScene.MAIN_MENU, useNetworkSceneManager: false);
         }
 
         void SetCurrentRound()

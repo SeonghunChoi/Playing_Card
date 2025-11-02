@@ -10,6 +10,10 @@
         /// </summary>
         public const string MAIN_MENU = "MainMenu";
         /// <summary>
+        /// 게임 로비
+        /// </summary>
+        public const string GAME_LOBBY = "GameLobby";
+        /// <summary>
         /// 게임 룸
         /// </summary>
         public const string GAME_ROOM = "GameRoom";

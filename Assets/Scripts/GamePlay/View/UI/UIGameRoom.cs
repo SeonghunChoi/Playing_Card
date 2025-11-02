@@ -1,5 +1,6 @@
 ﻿using MessagePipe;
 using PlayingCard.GamePlay.Message;
+using PlayingCard.GamePlay.Model.Message;
 using PlayingCard.GamePlay.Model.PlayModels;
 using PlayingCard.Utilities.UI;
 using System;
@@ -53,14 +54,15 @@ namespace PlayingCard.GamePlay.View.UI
         UIConfirmBetMoney uiConfirmBetMoney;
         UIWinner uiWinner;
 
-        private IDisposable turnStartDisposable;
+        private IPublisher<TableStateMessage> tableStatePublisher;
+        private ISubscriber<TurnStartMessage> turnStartSubscriber;
         private IPublisher<TurnActionMessage> turnActionPublisher;
-        private IPublisher<ExitGameMessage> exitGamePublisher;
-        private IDisposable winnerDisposable;
-        private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
-        private IPublisher<EndGameMessage> endGamePublisher;
         private IPublisher<DrawCardsMessage> drawCardsPublisher;
-        private IDisposable drawInfoDispasable;
+        private ISubscriber<DrawInfoMessage> drawInfoSubscriber;
+        private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
+        private ISubscriber<WinnerMessage> winnerSubscriber;
+
+        private IDisposable subscription;
 
         /// <summary>
         /// 현재 TurnAction 플레이어
@@ -87,31 +89,38 @@ namespace PlayingCard.GamePlay.View.UI
             buttonCall.AddOnClickEvent(OnClickCall);
             buttonRaise.AddOnClickEvent(OnClickRaise);
             buttonAllIn.AddOnClickEvent(OnClickAllIn);
+
+            var disposableBag = DisposableBag.CreateBuilder();
+
+            turnStartSubscriber.Subscribe(StartTurn).AddTo(disposableBag);
+            drawInfoSubscriber.Subscribe(DrawInfo).AddTo(disposableBag);
+            winnerSubscriber.Subscribe(ShowWinner).AddTo(disposableBag);
+
+            subscription = disposableBag.Build();
         }
 
         [Inject]
         public void Set(
             UIConfirmBetMoney uiConfirmBetMoney,
             UIWinner uiWinner,
+            IPublisher<TableStateMessage> tableStatePublisher,
             ISubscriber<TurnStartMessage> turnStartSubscriber,
-            IPublisher<TurnActionMessage> turnActionPublisher,
-            IPublisher<ExitGameMessage> exitGamePublisher,
-            ISubscriber<WinnerMessage> winnerSubscriber,
-            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher,
-            IPublisher<EndGameMessage> endGamePublisher,
+            IPublisher<TurnActionMessage> turnActionPublisher,            
             IPublisher<DrawCardsMessage> drawCardsPublisher,
-            ISubscriber<DrawInfoMessage> drawInfoSubscriber)
+            ISubscriber<DrawInfoMessage> drawInfoSubscriber,
+            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher,
+            ISubscriber<WinnerMessage> winnerSubscriber)
         {
             this.uiConfirmBetMoney = uiConfirmBetMoney;
             this.uiWinner = uiWinner;
-            turnStartDisposable = turnStartSubscriber.Subscribe(StartTurn);
+
+            this.tableStatePublisher = tableStatePublisher;
+            this.turnStartSubscriber = turnStartSubscriber;
             this.turnActionPublisher = turnActionPublisher;
-            this.exitGamePublisher = exitGamePublisher;
-            winnerDisposable = winnerSubscriber.Subscribe(ShowWinner);
-            this.setPlayerCameraPublisher = setPlayerCameraPublisher;
-            this.endGamePublisher = endGamePublisher;
             this.drawCardsPublisher = drawCardsPublisher;
-            drawInfoDispasable = drawInfoSubscriber.Subscribe(DrawInfo);
+            this.drawInfoSubscriber = drawInfoSubscriber;
+            this.setPlayerCameraPublisher = setPlayerCameraPublisher;
+            this.winnerSubscriber = winnerSubscriber;
         }
 
         /// <summary>
@@ -169,7 +178,7 @@ namespace PlayingCard.GamePlay.View.UI
 
         private void OnClickExit()
         {
-            exitGamePublisher.Publish(new ExitGameMessage());
+            tableStatePublisher.Publish(new TableStateMessage(TableStateType.Exit));
         }
 
         private void OnClickDraw()
@@ -272,7 +281,7 @@ namespace PlayingCard.GamePlay.View.UI
                 await uiWinner.ShowWinner(player, chips);
             }
             canvas.interactable = true;
-            endGamePublisher.Publish(new EndGameMessage());
+            tableStatePublisher.Publish(new TableStateMessage(TableStateType.End));
         }
 
         private void DrawInfo(DrawInfoMessage message)
@@ -282,9 +291,7 @@ namespace PlayingCard.GamePlay.View.UI
 
         private void OnDestroy()
         {
-            turnStartDisposable?.Dispose();
-            winnerDisposable?.Dispose();
-            drawInfoDispasable?.Dispose();
+            subscription?.Dispose();
         }
     }
 }

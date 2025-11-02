@@ -1,10 +1,9 @@
 using MessagePipe;
 using PlayingCard.ApplicationLifecycle.Message;
-using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.Model;
 using PlayingCard.GamePlay.Model.Configuration;
 using PlayingCard.GamePlay.Model.Configuration.Define;
-using PlayingCard.GamePlay.Model.PlayModels;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -26,6 +25,8 @@ namespace PlayingCard.ApplicationLifecycle
 
         private ISubscriber<QuitApplicationMessage> quitGameSubscriber;
 
+        private IDisposable subscription;
+
         //private IGameManager gameManager;
 
         protected override void Configure(IContainerBuilder builder)
@@ -37,23 +38,9 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterBuildCallback(c => GlobalMessagePipe.SetProvider(c.AsServiceProvider()));
             builder.RegisterMessageBroker<QuitApplicationMessage>(options);
 
-            //builder.RegisterMessageBroker<StartGameMessage>(options);
-            //builder.RegisterMessageBroker<ExitGameMessage>(options);
-            //builder.RegisterMessageBroker<EndGameMessage>(options);
-            //builder.RegisterMessageBroker<TurnStartMessage>(options);
-            //builder.RegisterMessageBroker<TurnActionMessage>(options);
-            //builder.RegisterMessageBroker<DealCardMessage>(options);
-            //builder.RegisterMessageBroker<WinnerMessage>(options);
-            //builder.RegisterMessageBroker<DrawInfoMessage>(options);
-            //builder.RegisterMessageBroker<DrawCardSelectMessage>(options);
-            //builder.RegisterMessageBroker<DrawCardsMessage>(options);
-            //builder.RegisterMessageBroker<DrawResultMessage>(options);
-
             // Manager µî·Ï
             builder.RegisterInstance(GameList);
             builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
-            //builder.Register<HandRankingManager>(Lifetime.Singleton);
-            //builder.Register<PlayTable>(Lifetime.Singleton).AsImplementedInterfaces();
         }
 
         private void Start()
@@ -65,12 +52,15 @@ namespace PlayingCard.ApplicationLifecycle
             var disposableBag = DisposableBag.CreateBuilder();
             quitGameSubscriber = Container.Resolve<ISubscriber<QuitApplicationMessage>>();
             quitGameSubscriber.Subscribe(x => QuitGame(x)).AddTo(disposableBag);
+            subscription = disposableBag.Build();
 
             SceneManager.LoadScene(startSceneName);
         }
 
         private void QuitGame(QuitApplicationMessage message)
         {
+            subscription?.Dispose();
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

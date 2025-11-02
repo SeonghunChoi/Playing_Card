@@ -2,7 +2,7 @@
 using PlayingCard.GamePlay.Model.Message;
 using VContainer;
 
-namespace PlayingCard.GamePlay.Presenter.GameState
+namespace PlayingCard.GamePlay.Presenter.Gamestate
 {
     /// <summary>
     /// MainMenu Scene에서 한정적으로 사용할 Container 설정

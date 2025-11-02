@@ -52,7 +52,7 @@ namespace PlayingCard.GamePlay.Presenter
                         if (selectedIdx != -1)
                         {
                             //gameManager.InitGame(gameList[selectedIdx]);
-                            SceneLoaderWarpper.Instance.LoadScene(DefineScene.GAME_ROOM);
+                            //SceneLoaderWarpper.Instance.LoadScene(DefineScene.GAME_ROOM);
                         }
                     }
                     break;

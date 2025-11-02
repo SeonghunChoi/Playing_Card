@@ -3,15 +3,13 @@ using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.Model;
 using PlayingCard.GamePlay.Model.Message;
 using PlayingCard.GamePlay.Model.PlayModels;
-using PlayingCard.GamePlay.View.PlayObject;
 using PlayingCard.GamePlay.View.UI;
 using System.Collections.Generic;
-using Unity.VisualScripting.YamlDotNet.Core;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace PlayingCard.GamePlay.Presenter.GameState
+namespace PlayingCard.GamePlay.Presenter.Gamestate
 {
     /// <summary>
     /// GameRoom Scene에서 한정적으로 사용할 Container 설정
