@@ -1,10 +1,9 @@
 ﻿using MessagePipe;
 using PlayingCard.ApplicationLifecycle.Message;
+using PlayingCard.ConnectionManagement;
 using PlayingCard.GamePlay.Model;
 using PlayingCard.GamePlay.Model.Configuration;
-using PlayingCard.GamePlay.Model.Configuration.Define;
 using PlayingCard.GamePlay.Model.Message;
-using PlayingCard.Utilities;
 using System;
 using System.Collections.Generic;
 using VContainer.Unity;
@@ -13,6 +12,8 @@ namespace PlayingCard.GamePlay.Presenter
 {
     public class MainMenuPresenter : IInitializable, IDisposable
     {
+        private readonly ConnectionManager connectionManager;
+        private readonly string nickname;
         private readonly List<Game> gameList;
         private readonly IGameManager gameManager;
         private readonly ISubscriber<MainMenuMessage> messageSubscriber;
@@ -23,11 +24,16 @@ namespace PlayingCard.GamePlay.Presenter
         private int selectedIdx = -1;
 
         public MainMenuPresenter(
+            ConnectionManager connectionManager,
+            string nickname,
             List<Game> gameList,
             IGameManager gameManager,
             ISubscriber<MainMenuMessage> messageSubscriber,
-            IPublisher<QuitApplicationMessage> quitGamePublisher)
+            IPublisher<QuitApplicationMessage> quitGamePublisher,
+            ISubscriber<ConnectStatus> connectSubscriber)
         {
+            this.connectionManager = connectionManager;
+            this.nickname = nickname;
             this.gameList = gameList;
             this.gameManager = gameManager;
             this.messageSubscriber = messageSubscriber;
@@ -51,6 +57,8 @@ namespace PlayingCard.GamePlay.Presenter
                     {
                         if (selectedIdx != -1)
                         {
+                            // 게임 룰에 따른 최대 인원수를 수정해 준다.
+                            connectionManager.MaxConnectedPlayers = gameList[selectedIdx].Rule.MaxPlayer;
                             //gameManager.InitGame(gameList[selectedIdx]);
                             //SceneLoaderWarpper.Instance.LoadScene(DefineScene.GAME_ROOM);
                         }
@@ -71,6 +79,18 @@ namespace PlayingCard.GamePlay.Presenter
                         else
                         {
                             selectedIdx = -1;
+                        }
+                    }
+                    break;
+                case MainMenuMessageType.Network:
+                    {
+                        if (message.value == 1)
+                        {
+                            connectionManager.StartHostIp(nickname, "127.0.0.1", 9997, "100", $"{selectedIdx}");
+                        }
+                        else if (message.value == 2)
+                        {
+                            connectionManager.StartClientIp(nickname, "127.0.0.1", 9997, "100", $"{selectedIdx}");
                         }
                     }
                     break;

@@ -40,7 +40,12 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         /// <summary>
         /// 고유 번호
         /// </summary>
-        public int Id { get; private set; }
+        public ulong ClientId { get; private set; }
+
+        /// <summary>
+        /// 플레이어 닉네임
+        /// </summary>
+        public string NickName { get; private set; }
 
         /// <summary>
         /// 플레이어가 가지고 있는 칩 개수
@@ -87,9 +92,10 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         List<Card> draws = new List<Card>();
         bool isDraw;
 
-        public Player(int id, ulong chips)
+        public Player(ulong clientId, string nickName, ulong chips)
         {
-            Id = id;
+            ClientId = clientId;
+            NickName = nickName;
             Chips = chips;
 
             Bet = 0;
@@ -232,6 +238,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                 case PlayerState.Playing:
                 case PlayerState.AllIn:
                 case PlayerState.Checked:
+                case PlayerState.Betted:
                 case PlayerState.Called:
                 case PlayerState.Raised:
                     result = true;

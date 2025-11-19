@@ -2,12 +2,17 @@
     "name": "PlayingCard.ApplicationLifecycle",
     "rootNamespace": "",
     "references": [
+        "GUID:1491147abca9d7d4bb7105af628b223e",
         "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:08b38f39e2d9e594389b7a4cf4c2c338",
         "GUID:4f682e06dbb3e624faedad9cc27106cc",
         "GUID:8e0d612ec1e134046b732af414a7de40",
-        "GUID:9cef1680403cb5143b4459f110b654e2"
+        "GUID:9cef1680403cb5143b4459f110b654e2",
+        "GUID:4325b3c6a7fc6e24fbea72e58e1f56d0",
+        "GUID:09910be2e168e2348983d9d2c03eb083",
+        "GUID:d7e58847e441de040977ebad2e8f53ec",
+        "GUID:db1dc541df040554b9444b013b1ee669"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

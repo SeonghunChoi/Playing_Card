@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PlayingCard.Utilities
 {
-    public interface ISessionPlayerData
+    public interface ISessionData
     {
         bool IsConnected { get; set; }
         ulong ClientID { get; set; }
@@ -21,7 +21,7 @@ namespace PlayingCard.Utilities
     /// 보안에 대한 방법을 고려해야함.
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class SessionManager<T> where T : struct, ISessionPlayerData
+    public class SessionManager<T> where T : struct, ISessionData
     {
         SessionManager()
         {

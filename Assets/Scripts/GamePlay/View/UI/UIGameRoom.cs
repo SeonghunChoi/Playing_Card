@@ -6,6 +6,7 @@ using PlayingCard.Utilities.UI;
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -51,23 +52,25 @@ namespace PlayingCard.GamePlay.View.UI
         [SerializeField]
         Button buttonAllIn;
 
+        List<Button> actionButtons;
+
         UIConfirmBetMoney uiConfirmBetMoney;
         UIWinner uiWinner;
+        UIMyTurn uiMyTurn;
 
         private IPublisher<TableStateMessage> tableStatePublisher;
+        private ISubscriber<GameRoomInfoMessage> gameRoomInfoSubscriber;
         private ISubscriber<TurnStartMessage> turnStartSubscriber;
+        private ISubscriber<RoundCompleteMessage> roundCompleteSubscriber;
+
         private IPublisher<TurnActionMessage> turnActionPublisher;
+
         private IPublisher<DrawCardsMessage> drawCardsPublisher;
         private ISubscriber<DrawInfoMessage> drawInfoSubscriber;
-        private IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher;
         private ISubscriber<WinnerMessage> winnerSubscriber;
 
         private IDisposable subscription;
 
-        /// <summary>
-        /// 현재 TurnAction 플레이어
-        /// </summary>
-        Player player;
         /// <summary>
         /// 이번 라운드 최대 Betting Chip 개수
         /// </summary>
@@ -76,6 +79,11 @@ namespace PlayingCard.GamePlay.View.UI
         /// 최소 Raise Chip 개수
         /// </summary>
         ulong minRaise;
+
+        private void Awake()
+        {
+            actionButtons = new List<Button>() { buttonFold, buttonCheck,  buttonBet, buttonCall, buttonRaise, buttonAllIn };
+        }
 
         private void Start()
         {
@@ -92,7 +100,9 @@ namespace PlayingCard.GamePlay.View.UI
 
             var disposableBag = DisposableBag.CreateBuilder();
 
+            gameRoomInfoSubscriber.Subscribe(ProcessGameRoomInfo).AddTo(disposableBag);
             turnStartSubscriber.Subscribe(StartTurn).AddTo(disposableBag);
+            roundCompleteSubscriber.Subscribe(ProcessRoundComplete).AddTo(disposableBag);
             drawInfoSubscriber.Subscribe(DrawInfo).AddTo(disposableBag);
             winnerSubscriber.Subscribe(ShowWinner).AddTo(disposableBag);
 
@@ -103,39 +113,32 @@ namespace PlayingCard.GamePlay.View.UI
         public void Set(
             UIConfirmBetMoney uiConfirmBetMoney,
             UIWinner uiWinner,
+            UIMyTurn uiMyTurn,
             IPublisher<TableStateMessage> tableStatePublisher,
+            ISubscriber<GameRoomInfoMessage> gameRoomInfoSubscriber,
             ISubscriber<TurnStartMessage> turnStartSubscriber,
+            ISubscriber<RoundCompleteMessage> roundCompleteSubscriber,
+
             IPublisher<TurnActionMessage> turnActionPublisher,            
+
             IPublisher<DrawCardsMessage> drawCardsPublisher,
             ISubscriber<DrawInfoMessage> drawInfoSubscriber,
-            IPublisher<SetPlayerCameraMessage> setPlayerCameraPublisher,
             ISubscriber<WinnerMessage> winnerSubscriber)
         {
             this.uiConfirmBetMoney = uiConfirmBetMoney;
             this.uiWinner = uiWinner;
+            this.uiMyTurn = uiMyTurn;
 
             this.tableStatePublisher = tableStatePublisher;
+            this.gameRoomInfoSubscriber = gameRoomInfoSubscriber;
             this.turnStartSubscriber = turnStartSubscriber;
+            this.roundCompleteSubscriber = roundCompleteSubscriber;
+
             this.turnActionPublisher = turnActionPublisher;
+
             this.drawCardsPublisher = drawCardsPublisher;
             this.drawInfoSubscriber = drawInfoSubscriber;
-            this.setPlayerCameraPublisher = setPlayerCameraPublisher;
             this.winnerSubscriber = winnerSubscriber;
-        }
-
-        /// <summary>
-        /// Turn 시작 메시지 처리
-        /// </summary>
-        /// <param name="message"></param>
-        private void StartTurn(TurnStartMessage message)
-        {
-            this.player = message.player;
-            this.lastMaxBet = message.LastMaxBet;
-            this.minRaise = message.MinRaise;
-
-            SetRoundInfo(message.Pot, message.RoundName);
-            SetPlayerInfo(message.player);
-            ShowActionButtons(message.player, message.LastMaxBet, message.MinRaise, message.LastBetting);
         }
 
         /// <summary>
@@ -153,27 +156,74 @@ namespace PlayingCard.GamePlay.View.UI
         /// 플레이어 정보 처리
         /// </summary>
         /// <param name="player"></param>
-        private void SetPlayerInfo(Player player)
+        [Rpc(SendTo.ClientsAndHost)]
+        public void SetPlayerInfoRpc(ulong clientId, string nickName, ulong chips, ulong bet)
         {
-            textPlayerId.text = $"Player_{player.Id}";
-            textMoney.text = player.Chips.ToString("N0");
-            textBet.text = player.Bet.ToString("N0");
+            Debug.Log($"SetPlayerInfoRpc - clientId:{clientId}, nickName:{nickName}, chips:{chips}, bet:{bet}");
+            if (clientId == NetworkManager.Singleton.LocalClientId)
+            {
+                textPlayerId.text = nickName;
+                textMoney.text = chips.ToString("N0");
+                textBet.text = bet.ToString("N0");
+            }
         }
 
-        private void ShowActionButtons(Player player, ulong lastMaxBet, ulong minRaise, Betting lastBetting)
+        public void UpdateActionButtons()
         {
-            ulong callAmount = lastMaxBet - player.Bet;
+            ShowActionButtons(minRaise);
+        }
+        private void ShowActionButtons(ulong minRaise)
+        {
+            var clientId = NetworkManager.Singleton.LocalClientId;
+            var clientPlayer = ClientPlayerManager.GetClientPlayer(clientId);
+            ulong callAmount = lastMaxBet - clientPlayer.ServerPlayer.RoundBet.Value;
+            if (lastMaxBet < clientPlayer.ServerPlayer.RoundBet.Value)
+                callAmount = 0;
+            Debug.Log($"[ShowActionButtons] clientId:{clientId}, State:{clientPlayer.ServerPlayer.State.Value}, Chips:{clientPlayer.ServerPlayer.Chips.Value}, callAmount:{callAmount} = lastMaxBet:{lastMaxBet} - bet:{clientPlayer.ServerPlayer.RoundBet.Value};\n");
 
             textMaxBet.text = lastMaxBet.ToString("N0");
 
-            buttonFold.gameObject.SetActive(!player.State.HasActed());
-            buttonCheck.gameObject.SetActive(!player.State.HasActed() && callAmount == 0);
-            buttonBet.gameObject.SetActive(!player.State.HasActed() && callAmount == 0 && lastMaxBet == 0);
-            buttonCall.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips >= callAmount);
-            buttonRaise.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > callAmount + minRaise);
-            buttonAllIn.gameObject.SetActive(!player.State.HasActed() && callAmount > 0 && player.Chips > 0);
+            buttonFold.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed());
+            buttonCheck.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed() && callAmount == 0);
+            buttonBet.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed() && callAmount == 0 && lastMaxBet == 0);
+            buttonCall.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed() && callAmount > 0 && clientPlayer.ServerPlayer.Chips.Value >= callAmount);
+            buttonRaise.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed() && callAmount > 0 && clientPlayer.ServerPlayer.Chips.Value > callAmount + minRaise);
+            buttonAllIn.gameObject.SetActive(!clientPlayer.ServerPlayer.State.Value.HasActed() && callAmount > 0 && clientPlayer.ServerPlayer.Chips.Value > 0);
 
             buttonDraw.gameObject.SetActive(false);
+        }
+
+        private void SetButtonsInteraction(bool isMyturn)
+        {
+            buttonDraw.interactable = isMyturn;
+            buttonFold.interactable = isMyturn;
+            buttonCheck.interactable = isMyturn;
+            buttonBet.interactable = isMyturn;
+            buttonCall.interactable = isMyturn;
+            buttonRaise.interactable = isMyturn;
+            buttonAllIn.interactable = isMyturn;
+
+            var buttonColors = buttonFold.colors;
+            foreach (var actionButton in actionButtons)
+            {
+                if (actionButton.interactable)
+                    actionButton.targetGraphic.color = buttonColors.normalColor;
+                else
+                    actionButton.targetGraphic.color = buttonColors.disabledColor;
+            }
+
+            if (isMyturn) ShowMyTurn();
+        }
+
+        private async void ShowMyTurn()
+        {
+            try
+            {
+                await uiMyTurn.ShowTurn();
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private void OnClickExit()
@@ -183,18 +233,18 @@ namespace PlayingCard.GamePlay.View.UI
 
         private void OnClickDraw()
         {
-            drawCardsPublisher.Publish(new DrawCardsMessage(player));
+            drawCardsPublisher.Publish(new DrawCardsMessage(NetworkManager.Singleton.LocalClientId));
             buttonDraw.gameObject.SetActive(false);
         }
 
         private void OnClickFold()
         {
-            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Fold, 0));
+            turnActionPublisher.Publish(new TurnActionMessage(NetworkManager.Singleton.LocalClientId, Betting.Fold, 0));
         }
 
         private void OnClickCheck()
         {
-            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Check, 0));
+            turnActionPublisher.Publish(new TurnActionMessage(NetworkManager.Singleton.LocalClientId, Betting.Check, 0));
         }
 
         private void OnClickBet()
@@ -210,9 +260,9 @@ namespace PlayingCard.GamePlay.View.UI
             try
             {
                 canvas.interactable = false;
-                ulong bet = await uiConfirmBetMoney.GetBetChips(player, Betting.Bet, lastMaxBet, minRaise);
+                ulong bet = await uiConfirmBetMoney.GetBetChips(NetworkManager.Singleton.LocalClientId, Betting.Bet, lastMaxBet, minRaise);
                 canvas.interactable = true;
-                turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Bet, bet));
+                turnActionPublisher.Publish(new TurnActionMessage(NetworkManager.Singleton.LocalClientId, Betting.Bet, bet));
             }
             catch (OperationCanceledException)
             {
@@ -223,8 +273,12 @@ namespace PlayingCard.GamePlay.View.UI
 
         private void OnClickCall()
         {
-            ulong callAmount = lastMaxBet - player.Bet;
-            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Call, callAmount));
+            var clientPlayer = ClientPlayerManager.GetClientPlayer(NetworkManager.Singleton.LocalClientId);
+            ulong callAmount = lastMaxBet - clientPlayer.ServerPlayer.RoundBet.Value;
+            if (lastMaxBet < clientPlayer.ServerPlayer.RoundBet.Value)
+                callAmount = 0;
+            Debug.Log($"OnClickCall - callAmount:{callAmount} = lastMaxBet:{lastMaxBet} - MyBet:{clientPlayer.ServerPlayer.RoundBet.Value}");
+            turnActionPublisher.Publish(new TurnActionMessage(clientPlayer.ServerPlayer.OwnerClientId, Betting.Call, callAmount));
         }
 
         private void OnClickRaise()
@@ -239,11 +293,14 @@ namespace PlayingCard.GamePlay.View.UI
         {
             try
             {
+                var clientPlayer = ClientPlayerManager.GetClientPlayer(NetworkManager.Singleton.LocalClientId);
                 canvas.interactable = false;
-                ulong callAmount = lastMaxBet - player.Bet;
-                ulong bet = await uiConfirmBetMoney.GetBetChips(player, Betting.Raise, callAmount + minRaise, minRaise);
+                ulong callAmount = lastMaxBet - clientPlayer.ServerPlayer.RoundBet.Value;
+                if (lastMaxBet < clientPlayer.ServerPlayer.RoundBet.Value)
+                    callAmount = 0;
+                ulong bet = await uiConfirmBetMoney.GetBetChips(clientPlayer.ServerPlayer.OwnerClientId, Betting.Raise, callAmount + minRaise, minRaise);
                 canvas.interactable = true;
-                turnActionPublisher.Publish(new TurnActionMessage(player, Betting.Raise, bet));
+                turnActionPublisher.Publish(new TurnActionMessage(clientPlayer.ServerPlayer.OwnerClientId, Betting.Raise, bet));
             }
             catch (OperationCanceledException)
             {
@@ -254,7 +311,40 @@ namespace PlayingCard.GamePlay.View.UI
 
         private void OnClickAllIn()
         {
-            turnActionPublisher.Publish(new TurnActionMessage(player, Betting.AllIn, player.Chips));
+            var clientPlayer = ClientPlayerManager.GetClientPlayer(NetworkManager.Singleton.LocalClientId);
+            turnActionPublisher.Publish(new TurnActionMessage(clientPlayer.ServerPlayer.OwnerClientId, Betting.AllIn, clientPlayer.ServerPlayer.Chips.Value));
+        }
+
+        /// <summary>
+        /// Turn 시작 메시지 처리
+        /// </summary>
+        /// <param name="message"></param>
+        private void StartTurn(TurnStartMessage message)
+        {
+            this.lastMaxBet = message.LastMaxBet;
+            this.minRaise = message.MinRaise;
+
+            SetRoundInfo(message.Pot, message.RoundName);
+            ShowActionButtons(message.MinRaise/*, message.LastBetting*/);
+            SetButtonsInteraction(message.clientId == NetworkManager.Singleton.LocalClientId);
+
+        }
+
+        private void ProcessGameRoomInfo(GameRoomInfoMessage message)
+        {
+            if (NetworkManager.Singleton.LocalClientId == message.ClientId)
+            {
+                this.lastMaxBet = message.LastMaxBet;
+                minRaise = message.MinRaise;
+                SetRoundInfo(message.Pot, message.RoundName);
+                ShowActionButtons(message.MinRaise/*, message.LastBetting*/);
+                //SetButtonsInteraction(message.isMyTurn);
+            }
+        }
+
+        private void ProcessRoundComplete(RoundCompleteMessage message)
+        {
+            this.lastMaxBet = 0;
         }
 
         /// <summary>
@@ -263,22 +353,32 @@ namespace PlayingCard.GamePlay.View.UI
         /// <param name="message"></param>
         private void ShowWinner(WinnerMessage message)
         {
-            var winners = message.winners;
-            TaskShowWinner(winners);
+            TaskShowWinner(message.clientId, message.winChips);
         }
 
         /// <summary>
         /// 승리자 확인 UI 표시
         /// </summary>
         /// <param name="winners"></param>
-        private async void TaskShowWinner(Dictionary<Player, ulong> winners)
+        private async void TaskShowWinner(ulong clientId, ulong winChips)
         {
             canvas.interactable = false;
-            foreach (var player in winners.Keys)
+            await uiWinner.ShowWinner(clientId, winChips);
+            canvas.interactable = true;
+            tableStatePublisher.Publish(new TableStateMessage(TableStateType.End));
+        }
+
+        /// <summary>
+        /// 승리자 확인 UI 표시
+        /// </summary>
+        /// <param name="winners"></param>
+        private async void TaskShowWinner(Dictionary<ulong, ulong> winners)
+        {
+            canvas.interactable = false;
+            foreach (var clientId in winners.Keys)
             {
-                setPlayerCameraPublisher.Publish(new SetPlayerCameraMessage(player));
-                ulong chips = winners[player];
-                await uiWinner.ShowWinner(player, chips);
+                ulong chips = winners[clientId];
+                await uiWinner.ShowWinner(clientId, chips);
             }
             canvas.interactable = true;
             tableStatePublisher.Publish(new TableStateMessage(TableStateType.End));

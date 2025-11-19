@@ -37,6 +37,31 @@ namespace PlayingCard.GamePlay.Message
     public struct ExitGameMessage { }
 
     /// <summary>
+    /// Game Room UI용 갱신 정보
+    /// </summary>
+    public struct GameRoomInfoMessage
+    {
+        public ulong ClientId;
+        public string NickName;
+        public string RoundName;
+        public Betting LastBetting;
+        public ulong MinRaise;
+        public ulong Pot;
+        public ulong LastMaxBet;
+
+        public GameRoomInfoMessage(ulong clientId, string nickName, string roundName, Betting lastBetting, ulong minRaise, ulong pot, ulong lastMaxBet)
+        {
+            this.ClientId = clientId;
+            this.NickName = nickName;
+            this.RoundName = roundName;
+            this.LastBetting = lastBetting;
+            this.MinRaise = minRaise;
+            this.Pot = pot;
+            this.LastMaxBet = lastMaxBet;
+        }
+    }
+
+    /// <summary>
     /// Player Turn 시작 메시지
     /// </summary>
     public struct TurnStartMessage
@@ -46,48 +71,50 @@ namespace PlayingCard.GamePlay.Message
         public ulong Pot;
         public ulong LastMaxBet;
         public Betting LastBetting;
-        public Player player;
+        public ulong clientId;
 
-        public TurnStartMessage(ulong minRaise, string roundName, ulong pot, ulong lastMaxBet, Betting lastBetting, Player player)
+        public TurnStartMessage(ulong minRaise, string roundName, ulong pot, ulong lastMaxBet, Betting lastBetting, ulong clientId)
         {
             this.MinRaise = minRaise;
             this.RoundName = roundName;
             this.Pot = pot;
             this.LastMaxBet = lastMaxBet;
             this.LastBetting = lastBetting; 
-            this.player = player;
+            this.clientId = clientId;
         }
     }
+
+    public struct RoundCompleteMessage { }
 
     /// <summary>
     /// Player Turn Action 메시지
     /// </summary>
     public struct TurnActionMessage
     {
-		public Player player;
+        public ulong ClientId;
         public Betting betting;
         public ulong bet;
 
-        public TurnActionMessage(Player player, Betting betting, ulong bet)
+        public TurnActionMessage(ulong clientId, Betting betting, ulong bet)
         {
-            this.player = player;
+            ClientId = clientId;
             this.betting = betting;
             this.bet = bet;
         }
     }
 
     /// <summary>
-    /// ObjectCard 를 Target에 지급한다.
+    /// Card 를 Target에 지급한다.
     /// </summary>
     public struct DealCardMessage
     {
         public List<Card> dealCards;
-        public Player player;
+        public ulong? clientId;
 
-        public DealCardMessage(List<Card> dealCards, Player player)
+        public DealCardMessage(List<Card> dealCards, ulong? clinetId)
         {
             this.dealCards = dealCards;
-            this.player = player;
+            this.clientId = clinetId;
         }
     }
 
@@ -96,11 +123,19 @@ namespace PlayingCard.GamePlay.Message
     /// </summary>
     public struct WinnerMessage
     {
-        public Dictionary<Player, ulong> winners;
+        //public Dictionary<ulong, ulong> winners;
 
-        public WinnerMessage(Dictionary<Player, ulong> winners)
+        //public WinnerMessage(Dictionary<ulong, ulong> winners)
+        //{
+        //    this.winners = winners;
+        //}
+        public ulong clientId;
+        public ulong winChips;
+
+        public WinnerMessage(ulong clientId, ulong winnerChips)
         {
-            this.winners = winners;
+            this.clientId = clientId;
+            this.winChips = winnerChips;
         }
     }
 
@@ -119,12 +154,12 @@ namespace PlayingCard.GamePlay.Message
 
     public struct DrawCardSelectMessage
     {
-        public ObjectPlayer objectPlayer;
+        public ServerPlayer serverPlayer;
         public ObjectCard objectCard;
 
-        public DrawCardSelectMessage(ObjectPlayer objectPlayer, ObjectCard objectCard)
+        public DrawCardSelectMessage(ServerPlayer serverPlayer, ObjectCard objectCard)
         {
-            this.objectPlayer = objectPlayer;
+            this.serverPlayer = serverPlayer;
             this.objectCard = objectCard;
         }
     }
@@ -141,22 +176,22 @@ namespace PlayingCard.GamePlay.Message
 
     public struct DrawCardsMessage
     {
-        public Player player;
+        public ulong ClientId;
 
-        public DrawCardsMessage(Player player)
+        public DrawCardsMessage(ulong clientId)
         {
-            this.player = player;
+            ClientId = clientId;
         }
     }
 
     public struct DrawResultMessage
     {
-        public Player player;
+        public ulong ClientId;
         public List<Card> cards;
 
-        public DrawResultMessage(Player player, List<Card> cards)
+        public DrawResultMessage(ulong clientId, List<Card> cards)
         {
-            this.player = player;
+            ClientId = clientId;
             this.cards = cards;
         }
     }

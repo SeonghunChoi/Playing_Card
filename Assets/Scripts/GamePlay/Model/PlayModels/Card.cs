@@ -1,4 +1,7 @@
-﻿namespace PlayingCard.GamePlay.Model.PlayModels
+﻿using System;
+using Unity.Netcode;
+
+namespace PlayingCard.GamePlay.Model.PlayModels
 {
     /// <summary>
     /// Suit 종류
@@ -25,15 +28,15 @@
     /// <summary>
     /// 카드 정보
     /// </summary>
-    public struct Card
+    [Serializable]
+    public struct Card : /*INetworkSerializable,*/ IEquatable<Card>
     {
-        public Suit Suit { get; private set; }
+        public Suit Suit;
+        public Rank Rank;
 
-        public Rank Rank { get; private set; }
-        
-        public bool IsWild { get; private set; }
+        public bool IsFaceUp;
 
-        public bool IsFaceUp { get; private set; }
+        public bool IsWild;
 
         public Card(Suit suit, Rank rank, bool isFaceUp, bool isWild = false)
         {
@@ -43,6 +46,21 @@
             IsFaceUp = isFaceUp;
 
             IsWild = isWild;
+        }
+
+        //public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        //{
+        //    serializer.SerializeValue(ref Suit);
+        //    serializer.SerializeValue(ref Rank);
+        //    serializer.SerializeValue(ref IsFaceUp);
+        //    serializer.SerializeValue(ref IsWild);
+        //}
+
+        public bool Equals(Card other)
+        {
+            return Suit.Equals(other.Suit) 
+                && Rank.Equals(other.Rank) 
+                && IsWild.Equals(other.IsWild);
         }
 
         /// <summary>

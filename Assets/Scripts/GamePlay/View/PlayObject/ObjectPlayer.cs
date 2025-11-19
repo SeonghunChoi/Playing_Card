@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using PlayingCard.GamePlay.Model.PlayModels;
 using UnityEngine;
 
 namespace PlayingCard.GamePlay.View.PlayObject
@@ -9,7 +8,7 @@ namespace PlayingCard.GamePlay.View.PlayObject
     /// </summary>
     public class ObjectPlayer : MonoBehaviour
     {
-        public int Id;
+        public ulong ClientId;
 
         public Vector3 camPosition
         {
@@ -96,8 +95,8 @@ namespace PlayingCard.GamePlay.View.PlayObject
         /// </summary>
         public void SetCardPosition()
         {
-            ObjectTable.SetCardPosition(trBoardPoint);
-            ObjectTable.SetCardPosition(trHandPoint);
+            NetworkGameTable.SetCardPosition(trBoardPoint);
+            NetworkGameTable.SetCardPosition(trHandPoint);
         }
     }
 }

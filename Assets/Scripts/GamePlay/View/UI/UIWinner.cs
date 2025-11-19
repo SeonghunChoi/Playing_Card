@@ -43,9 +43,9 @@ namespace PlayingCard.GamePlay.View.UI
             panel.blocksRaycasts = false;
         }
 
-        public async UniTask<bool> ShowWinner(Player player, ulong chips)
+        public async UniTask<bool> ShowWinner(ulong clientId, ulong chips)
         {
-            textWinner.text = $"Player {player.Id}";
+            textWinner.text = $"Player {clientId}";
             textChips.text = chips.ToString("N0");
 
             Show();

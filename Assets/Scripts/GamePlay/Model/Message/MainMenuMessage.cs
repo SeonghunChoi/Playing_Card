@@ -5,6 +5,7 @@
         Start,
         Exit,
         Menu,
+        Network,
     }
 
     /// <summary>

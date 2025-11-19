@@ -23,16 +23,9 @@ namespace PlayingCard.GamePlay.Model
     /// 플레이어가 가진 Hands를 기반으로 최고 패를 찾아낸다.
     /// Kickers 를 구한다.
     /// </summary>
-    public class HandRankingManager
+    public static class HandRankingManager
     {
-        //public HandRankingManager(GameRule rule)
-        //{
-        //    this.rule = rule;
-        //}
-
-        //GameRule rule;
-
-        public HandRanking GetHandRankingType(List<Card> hand)
+        public static HandRanking GetHandRankingType(List<Card> hand)
         {
             hand.Sort((x, y) => x.Rank.CompareTo(y.Rank));
             var allCombos = GetFiveCardCombinations(hand);
@@ -117,7 +110,7 @@ namespace PlayingCard.GamePlay.Model
             return hand.GroupBy(card => card.Rank).ToDictionary(group => group.Key, group => group.Count());
         }
 
-        List<List<Card>> GetFiveCardCombinations(List<Card> hands)
+        static List<List<Card>> GetFiveCardCombinations(List<Card> hands)
         {
             var combinations = new List<List<Card>>();
             int handCount = hands.Count;

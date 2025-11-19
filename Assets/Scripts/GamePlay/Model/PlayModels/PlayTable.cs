@@ -3,26 +3,22 @@ using PlayingCard.GamePlay.Message;
 using PlayingCard.GamePlay.Model.Configuration;
 using PlayingCard.GamePlay.Model.Configuration.Define;
 using PlayingCard.GamePlay.Model.Message;
+using PlayingCard.LobbyManagement.NetModels;
 using PlayingCard.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 namespace PlayingCard.GamePlay.Model.PlayModels
 {
-    public interface IPlayTable
-    {
-        Player GetPlayer(int id);
-    }
 
-    public class PlayTable : IPlayTable, IInitializable, IDisposable
+    public class PlayTable : IInitializable, IDisposable
     {
-        HandRankingManager rankingManager;
-
         ulong MinRaise => game.Rule.MinRaise;
 
         Game game;
@@ -62,7 +58,6 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         [Inject]
         public PlayTable(
             Game SelectedGame,
-            HandRankingManager rankingManager,
             ISubscriber<TableStateMessage> tableStateSubscriber,
             IPublisher<TurnStartMessage> turnStartPublisher,
             ISubscriber<TurnActionMessage> turnActionSubscriber,
@@ -74,7 +69,6 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             IPublisher<DrawResultMessage> drawResultPublisher)
         {
             this.game = SelectedGame;
-            this.rankingManager = rankingManager;
 
             this.tableStateSubscriber = tableStateSubscriber;
             this.turnStartPublisher = turnStartPublisher;
@@ -120,9 +114,9 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             
         }
 
-        public Player GetPlayer(int id)
+        public Player GetPlayer(ulong clientId)
         {
-            var player = players.Find(p => p.Id == id);
+            var player = players.Find(p => p.ClientId == clientId);
             if (player == null) player = players[0];
 
             return player;
@@ -136,10 +130,8 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             this.game = game;
 
             players = new List<Player>();
-            for (int i = 0; i < game.Rule.MaxPlayer; i++)
-            {
-                players.Add(new Player(i + 1, 1000));
-            }
+
+            SetPlayer();
 
             if (cards == null) cards = new List<Card>();
             else cards.Clear();
@@ -166,6 +158,20 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             }
 
             ResetTable();
+        }
+
+        public void SetPlayer()
+        {
+            foreach (var networkClient in NetworkManager.Singleton.ConnectedClients)
+            {
+                var netCient = networkClient.Value;
+                if (netCient == null) continue;
+                var netUserObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(netCient.ClientId);
+                if (netUserObject.TryGetComponent(out NetUser netUser))
+                {
+                    players.Add(new Player(netUser.OwnerClientId, netUser.NetworkNameState.Name.ToString(), netUser.NetworkChipsState.Chips.Value));
+                }
+            }
         }
 
         public void ResetTable()
@@ -407,7 +413,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                             BreakGame();
                             return;
                         }
-                        dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
+                        //dealCardPublisher.Publish(new DealCardMessage(dealBuffer, player));
                         // 다음 플레이어로 변경
                         player = GetNextDealPlayer(dealIdx);
                         dealIdx = players.IndexOf(player);
@@ -486,7 +492,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
 
             var player = players[currentPlayerIdx];
             string roundName = string.IsNullOrEmpty(currentRound.RoundName) ? $"Round {round}" : currentRound.RoundName; 
-            turnStartPublisher.Publish(new TurnStartMessage(MinRaise, roundName, pot, lastMaxBet, lastBetting, player));
+            //turnStartPublisher.Publish(new TurnStartMessage(MinRaise, roundName, pot, lastMaxBet, lastBetting, player));
         }
 
         /// <summary>
@@ -495,7 +501,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         /// <param name="message"></param>
         void TrunAction(TurnActionMessage message)
         {
-            var player = message.player;
+            var player = ServerPlayerManager.GetServerPlayer(message.ClientId);
 
             if (message.bet > 0)
             {
@@ -516,7 +522,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             {
                 case Betting.Fold:
                     {
-                        player.SetState(PlayerState.Folded);
+                        player.ChangeState(PlayerState.Folded);
                     }
                     break;
                 case Betting.Check:
@@ -525,7 +531,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                         {
                             lastBetting = Betting.Check;
                         }
-                        player.SetState(PlayerState.Checked);
+                        player.ChangeState(PlayerState.Checked);
                     }
                     break;
                 case Betting.Bet:
@@ -539,7 +545,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                         {
                             checkPlayers[i].SetState(PlayerState.Playing);
                         }  
-                        player.SetState(PlayerState.Betted);
+                        player.ChangeState(PlayerState.Betted);
                     }
                     break;
                 case Betting.Call:
@@ -553,7 +559,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                         {
                             checkPlayers[i].SetState(PlayerState.Playing);
                         }
-                        player.SetState(PlayerState.Called);
+                        player.ChangeState(PlayerState.Called);
                     }
                     break;
                 case Betting.Raise:
@@ -567,12 +573,12 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                         {
                             checkPlayers[i].SetState(PlayerState.Playing);
                         }
-                        player.SetState(PlayerState.Raised);
+                        player.ChangeState(PlayerState.Raised);
                     }
                     break;
                 case Betting.AllIn:
                     {
-                        player.SetState(PlayerState.AllIn);
+                        player.ChangeState(PlayerState.AllIn);
                     }
                     break;
                 default:
@@ -589,18 +595,19 @@ namespace PlayingCard.GamePlay.Model.PlayModels
         {
             if (currentRound.DrawCardCount > 0)
             {
-                var player = players.Find(p => p.Id == message.objectPlayer.Id);
-                if (player != null && !player.IsDraw)
-                {
-                    player.SelectDrawCard(message.objectCard, currentRound.DrawCardCount);
-                    drawCardInfoPublisher.Publish(new DrawInfoMessage(player.DrawsCount));
-                }
+                //var player = players.Find(p => p.NickName == message.objectPlayer.);
+                //if (player != null && !player.IsDraw)
+                //{
+                //    player.SelectDrawCard(message.objectCard, currentRound.DrawCardCount);
+                //    drawCardInfoPublisher.Publish(new DrawInfoMessage(player.DrawsCount));
+                //}
             }
         }
 
         void DrawCards(DrawCardsMessage message)
         {
-            var player = message.player;
+            var player = ServerPlayerManager.GetServerPlayer(message.ClientId);
+
             List<Card> cards = new List<Card>();
             if (player.DrawsCount > deck.Count)
             {
@@ -616,7 +623,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
 
             player.DrawCards(cards);
 
-            drawResultPublisher.Publish(new DrawResultMessage(player, cards));
+            drawResultPublisher.Publish(new DrawResultMessage(player.OwnerClientId, cards));
         }
 
         /// <summary>
@@ -632,7 +639,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                 var player = playables[i];
                 var hands = player.AllCards;
 
-                var HandRanking = rankingManager.GetHandRankingType(hands);
+                var HandRanking = HandRankingManager.GetHandRankingType(hands);
 
                 if (topPlayers.Count == 0)
                 {
@@ -669,8 +676,8 @@ namespace PlayingCard.GamePlay.Model.PlayModels
             {
                 var player = winners[i];
                 var hands = player.AllCards;
-                var handRanking = rankingManager.GetHandRankingType(hands);
-                sb.AppendLine($"Player:{player.Id}, {handRanking.ToString()}");
+                var handRanking = HandRankingManager.GetHandRankingType(hands);
+                sb.AppendLine($"Player:{player.NickName}, {handRanking.ToString()}");
                 sb.AppendLine("--------------------------------------------------------------------------------");
             }
             Debug.Log(sb.ToString());
@@ -686,7 +693,7 @@ namespace PlayingCard.GamePlay.Model.PlayModels
                 winners[i].ApplyWinChips(winChips);
                 winnerChips.Add(winners[i], winChips);
             }
-            winnerPublisher.Publish(new WinnerMessage(winnerChips));
+            //winnerPublisher.Publish(new WinnerMessage(winnerChips));
         }
 
         private void BreakGame()

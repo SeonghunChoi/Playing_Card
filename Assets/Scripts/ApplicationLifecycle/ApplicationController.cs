@@ -1,10 +1,13 @@
 using MessagePipe;
 using PlayingCard.ApplicationLifecycle.Message;
+using PlayingCard.ConnectionManagement;
 using PlayingCard.GamePlay.Model;
 using PlayingCard.GamePlay.Model.Configuration;
 using PlayingCard.GamePlay.Model.Configuration.Define;
+using PlayingCard.Utilities;
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
@@ -18,6 +21,11 @@ namespace PlayingCard.ApplicationLifecycle
     /// </summary>
     public class ApplicationController : LifetimeScope
     {
+        [SerializeField]
+        NetworkManager networkManager;
+        [SerializeField]
+        ConnectionManager connectionManager;
+
         [SerializeField] 
         List<Game> GameList;
 
@@ -27,7 +35,7 @@ namespace PlayingCard.ApplicationLifecycle
 
         private IDisposable subscription;
 
-        //private IGameManager gameManager;
+        List<string> Names = new List<string> { "Ace", "Jack", "Queen", "King", "Joker" };
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -39,13 +47,22 @@ namespace PlayingCard.ApplicationLifecycle
             builder.RegisterMessageBroker<QuitApplicationMessage>(options);
 
             // Manager 등록
+            builder.RegisterComponent(connectionManager);
+            builder.RegisterComponent(networkManager);
+
+            builder.Register<ProfileManager>(Lifetime.Singleton);
+
             builder.RegisterInstance(GameList);
             builder.Register<GameManager>(Lifetime.Singleton).AsImplementedInterfaces();
+
+            var name = $"{Names[UnityEngine.Random.Range(0, Names.Count)]}_{UnityEngine.Random.Range(0, 10)}";
+            builder.RegisterInstance(name).WithParameter("nickname", name);
         }
 
         private void Start()
         {
             DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(networkManager.gameObject);
             Application.targetFrameRate = 120;
 
             // 게임 종료 Message 구독

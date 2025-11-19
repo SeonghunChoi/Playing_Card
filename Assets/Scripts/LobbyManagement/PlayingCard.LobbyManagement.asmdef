@@ -1,0 +1,24 @@
+{
+    "name": "PlayingCard.LobbyManagement",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:d7e58847e441de040977ebad2e8f53ec",
+        "GUID:4325b3c6a7fc6e24fbea72e58e1f56d0",
+        "GUID:f9be77af7d0ef9d42895aa9a92fd2c7f",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:08b38f39e2d9e594389b7a4cf4c2c338",
+        "GUID:4f682e06dbb3e624faedad9cc27106cc"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

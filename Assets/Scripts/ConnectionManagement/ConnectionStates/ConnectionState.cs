@@ -24,9 +24,9 @@ namespace PlayingCard.ConnectionManagement.ConnectionStates
 
         public virtual void OnServerStarted() { }
 
-        public virtual void StartClientIP(string playerName, string ipAddress, ushort port) { }
+        public virtual void StartClientIP(string playerName, string ipAddress, ushort port, params string[] values) { }
 
-        public virtual void StartHostIP(string playerName, string ipAddress, ushort port) { }
+        public virtual void StartHostIP(string playerName, string ipAddress, ushort port, params string[] values) { }
 
         public virtual void OnUserRequestedShutdown() { }
 

@@ -8,8 +8,8 @@ using UnityEngine;
 namespace PlayingCard.ConnectionManagement.ConnectionStates
 {
     /// <summary>
-    /// 호스트가 시작되는 상태에 해당하는 연결 상태입니다. 이 상태에 진입하면 호스트를 시작합니다.
-    /// 성공하면 Hosting 상태로 전환되고, 실패하면 Offline 상태로 되돌아갑니다.
+    /// 호스트가 시작되는 상태에 해당하는 연결 상태. 이 상태에 진입하면 호스트를 시작한다.
+    /// 성공하면 Hosting 상태로 전환되고, 실패하면 Offline 상태로 되돌아간다.
     /// </summary>
     public class StartingHostState : OnlineState
     {
@@ -38,16 +38,16 @@ namespace PlayingCard.ConnectionManagement.ConnectionStates
         {
             var connectionData = request.Payload;
             var clientId = request.ClientNetworkId;
-            // 호스트로 시작할 때, StartHost 호출이 끝나기 전에 발생합니다. 이 경우, 단순히 자신을 승인합니다.
+            // 호스트로 시작할 때, StartHost 호출이 끝나기 전에 발생. 이 경우, 자신을 승인.
             if (clientId == connectionManager.NetworkManager.LocalClientId)
             {
                 var payload = Encoding.UTF8.GetString(connectionData);
                 var connectionPayload = JsonUtility.FromJson<ConnectionPayload>(payload);
-                var sessionPlayerData = new SessionPlayerData(clientId, connectionPayload.PlayerName, new NetworkGuid(), 0, true);
+                var sessionPlayerData = new SessionPlayerData(clientId, connectionPayload.PlayerName, new NetworkGuid(), connectionPayload.Values, true);
 
                 SessionManager<SessionPlayerData>.Instance.SetupConnectoinPlayerSessionData(clientId, connectionPayload.PlayerId, sessionPlayerData);
 
-                // 연결 승인후 플레이어 오브젝트를 생성해줍니다.
+                // 연결 승인후 플레이어 오브젝트를 생성한다.
                 response.Approved = true;
                 response.CreatePlayerObject = true;
             }
@@ -64,7 +64,7 @@ namespace PlayingCard.ConnectionManagement.ConnectionStates
             {
                 await connectionMethod.SetupHostConnectionAsync();
 
-                // NGO(Netcode for GameObjects)의 StartHost가 모든 것을 시작합니다.
+                // NGO(Netcode for GameObjects)의 StartHost가 모든 것을 시작한다.
                 if (!connectionManager.NetworkManager.StartHost())
                 {
                     StartHostFailed();

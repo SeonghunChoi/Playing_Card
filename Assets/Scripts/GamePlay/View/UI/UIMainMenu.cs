@@ -1,4 +1,5 @@
 ﻿using MessagePipe;
+using PlayingCard.GamePlay.Model;
 using PlayingCard.GamePlay.Model.Message;
 using PlayingCard.Utilities.UI;
 using UnityEngine;
@@ -16,7 +17,10 @@ namespace PlayingCard.GamePlay.View.UI
         Button buttonExit;
         [SerializeField]
         Button buttonStart;
+        [SerializeField]
+        GameObject uiMultiplay;
 
+        GameManager gameManager;
         private IPublisher<MainMenuMessage> mainMenuMessagePublisher;
 
         protected void Start()
@@ -26,14 +30,16 @@ namespace PlayingCard.GamePlay.View.UI
         }
 
         [Inject]
-        public void Set(IPublisher<MainMenuMessage> mainMenuMessagePublisher)
+        public void Set(IGameManager gameManager, IPublisher<MainMenuMessage> mainMenuMessagePublisher)
         {
+            this.gameManager = gameManager as GameManager;
             this.mainMenuMessagePublisher = mainMenuMessagePublisher;
         }
 
         void GameStart()
         {
-            mainMenuMessagePublisher.Publish(new MainMenuMessage(MainMenuMessageType.Start, -1));
+            if (gameManager.SelectedGame == null) return;
+            uiMultiplay.SetActive(true);
         }
 
         void GameQuit()

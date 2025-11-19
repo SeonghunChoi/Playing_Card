@@ -7,6 +7,7 @@ namespace PlayingCard.ConnectionManagement
     {
         public string PlayerId;
         public string PlayerName;
+        public string[] Values;
         public bool IsDebug;
     }
 }

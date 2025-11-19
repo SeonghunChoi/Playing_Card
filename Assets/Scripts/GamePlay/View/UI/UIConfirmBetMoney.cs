@@ -76,14 +76,15 @@ namespace PlayingCard.GamePlay.View.UI
         /// <param name="lastMaxBet"></param>
         /// <param name="minRaise"></param>
         /// <returns></returns>
-        public async UniTask<ulong> GetBetChips(Player player, Betting betting, ulong lastMaxBet, ulong minRaise)
+        public async UniTask<ulong> GetBetChips(ulong clientId, Betting betting, ulong lastMaxBet, ulong minRaise)
         {
+            var player = ClientPlayerManager.GetClientPlayer(clientId);
             textTitle.text = betting.ToString().ToUpper();
 
-            ulong callAmount = lastMaxBet - player.Bet;
+            ulong callAmount = lastMaxBet - player.ServerPlayer.RoundBet.Value;
 
             minValue = callAmount;
-            maxValue = player.Chips;
+            maxValue = player.ServerPlayer.Chips.Value;
             bet = minValue;
 
             SetTextMoney(minValue, maxValue);

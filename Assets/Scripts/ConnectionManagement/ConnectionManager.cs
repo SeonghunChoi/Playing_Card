@@ -57,7 +57,7 @@ namespace PlayingCard.ConnectionManagement
 
         private void Start()
         {
-            List<ConnectionState> states = new List<ConnectionState>();
+            List<ConnectionState> states = new() { offlineState, clientConnectedState, clientConnectingState, clientReconnectingState, startingHostState, hostingState };
             foreach (var connectionState in states)
             {
                 resolver.Inject(connectionState);
@@ -120,19 +120,19 @@ namespace PlayingCard.ConnectionManagement
             currentState.OnTransportFailure();
         }
 
-        void OnServerStopped(bool _) // 이 매개변수는 필요하지 않습니다. ConnectionState가 이미 관련 정보를 포함하고 있기 때문.
+        void OnServerStopped(bool _) // 이 매개변수는 필요하지 않다. ConnectionState가 이미 관련 정보를 포함하고 있기 때문.
         {
             currentState.OnServerStopped();
         }
 
-        public void StartClientIp(string playerName, string ipaddress, int port)
+        public void StartClientIp(string playerName, string ipaddress, int port, params string[] values)
         {
-            currentState.StartClientIP(playerName, ipaddress, (ushort)port);
+            currentState.StartClientIP(playerName, ipaddress, (ushort)port, values);
         }
 
-        public void StartHostIp(string playerName, string ipaddress, int port)
+        public void StartHostIp(string playerName, string ipaddress, int port, params string[] values)
         {
-            currentState.StartHostIP(playerName, ipaddress, (ushort)port);
+            currentState.StartHostIP(playerName, ipaddress, (ushort)port, values);
         }
 
         public void RequestShutdown()

@@ -26,16 +26,16 @@ namespace PlayingCard.ConnectionManagement.ConnectionStates
 
         public override void Exit() { }
 
-        public override void StartClientIP(string playerName, string ipAddress, ushort port)
+        public override void StartClientIP(string playerName, string ipAddress, ushort port, params string[] values)
         {
-            var connectionMethod = new ConnectionMethodIP(ipAddress, port, connectionManager, profileManager, playerName);
+            var connectionMethod = new ConnectionMethodIP(ipAddress, port, connectionManager, profileManager, playerName, values);
             connectionManager.clientReconnectingState.Configure(connectionMethod);
             connectionManager.ChangeState(connectionManager.clientConnectingState.Configure(connectionMethod));
         }
 
-        public override void StartHostIP(string playerName, string ipAddress, ushort port)
+        public override void StartHostIP(string playerName, string ipAddress, ushort port, params string[] values)
         {
-            var connectionMethod = new ConnectionMethodIP(ipAddress, port, connectionManager, profileManager, playerName);
+            var connectionMethod = new ConnectionMethodIP(ipAddress, port, connectionManager, profileManager, playerName, values);
             connectionManager.ChangeState(connectionManager.startingHostState.Configure(connectionMethod));
         }
     }

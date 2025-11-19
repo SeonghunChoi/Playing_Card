@@ -10,15 +10,15 @@ using VContainer;
 namespace PlayingCard.ConnectionManagement.ConnectionStates
 {
     /// <summary>
-    /// 클라이언트 연결을 수신하는 호스트에 해당하는 연결 상태입니다.
-    /// 종료되거나 타임아웃될 경우 Offline 상태로 전환됩니다.
+    /// 클라이언트 연결을 수신하는 호스트에 해당하는 연결 상태.
+    /// 종료되거나 타임아웃될 경우 Offline 상태로 전환한다.
     /// </summary>
     public class HostingState : OnlineState
     {
         [Inject]
         IPublisher<ConnectionEventMessage> connectionEventPublisher;
 
-        // ApprovalCheck에서 사용됩니다. 이는 말도 안 되게 큰 쓰레기 버퍼를 보내는 방식의 DOS 공격에 대한 가벼운 보호 장치다.
+        // ApprovalCheck에서 사용. 이는 말도 안 되게 큰 쓰레기 버퍼를 보내는 방식의 DOS 공격에 대한 간단한 보호 장치다.
         const int MaxConnectPayload = 1024;
 
         public override void Enter()
@@ -114,7 +114,7 @@ namespace PlayingCard.ConnectionManagement.ConnectionStates
 
             if (gameReturnStatus == ConnectStatus.Success)
             {
-                var sessionPlayerData = new SessionPlayerData(clientID, connectionPayload.PlayerName, new Infrastructure.NetworkGuid(), 0, true);
+                var sessionPlayerData = new SessionPlayerData(clientID, connectionPayload.PlayerName, new Infrastructure.NetworkGuid(), connectionPayload.Values, true);
                 SessionManager<SessionPlayerData>.Instance.SetupConnectoinPlayerSessionData(clientID, connectionPayload.PlayerId, sessionPlayerData);
 
                 response.Approved = true;

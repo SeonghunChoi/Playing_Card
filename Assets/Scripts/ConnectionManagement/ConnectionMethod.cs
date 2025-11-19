@@ -1,6 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using PlayingCard.Utilities;
-using System;
+﻿using PlayingCard.Utilities;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode.Transports.UTP;
@@ -37,12 +35,13 @@ namespace PlayingCard.ConnectionManagement
             this.playerName = playerName;
         }
 
-        protected void SetConnectionPayload(string playerId, string playerName)
+        protected void SetConnectionPayload(string playerId, string playerName, string[] values)
         {
             var payload = JsonUtility.ToJson(new ConnectionPayload()
             {
                 PlayerId = playerId,
                 PlayerName = playerName,
+                Values = values,
                 IsDebug = Debug.isDebugBuild
             });
 
@@ -61,17 +60,22 @@ namespace PlayingCard.ConnectionManagement
     {
         string IpAddress;
         ushort Port;
+        string[] values;
 
-        public ConnectionMethodIP(string ip, ushort port, ConnectionManager connectionManager, ProfileManager profileManager, string playerName) : base(connectionManager, profileManager, playerName)
+        public ConnectionMethodIP(string ip, ushort port, ConnectionManager connectionManager, ProfileManager profileManager, string playerName, params string[] values) : base(connectionManager, profileManager, playerName)
         {
             IpAddress = ip;
             Port = port;
+            if (values.Length > 0)
+                this.values = values;
+            else
+                this.values = new string[0];
         }
 
         public override async Task SetupClientConnectionAsync()
         {
             await Task.Yield();
-            SetConnectionPayload(GetPlayerId(), playerName);
+            SetConnectionPayload(GetPlayerId(), playerName, values);
             var utp = (UnityTransport)connectionManager.NetworkManager.NetworkConfig.NetworkTransport;
             utp.SetConnectionData(IpAddress, Port);
         }
@@ -85,7 +89,7 @@ namespace PlayingCard.ConnectionManagement
         public override async Task SetupHostConnectionAsync()
         {
             await Task.Yield();
-            SetConnectionPayload(GetPlayerId(), playerName); // 호스트도 클라이언트이므로, 호스트에 대해서도 연결 페이로드를 설정해야 합니다.
+            SetConnectionPayload(GetPlayerId(), playerName, values); // 호스트도 클라이언트이므로, 호스트에 대해서도 연결 페이로드를 설정해야 한다.
             var utp = (UnityTransport)connectionManager.NetworkManager.NetworkConfig.NetworkTransport;
             utp.SetConnectionData(IpAddress, Port);
         }
