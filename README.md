@@ -94,4 +94,11 @@ TurnAction을 하면, 카메라가 이동하며 각 플레어의 Hand를 보여�
 ### Multiplay 추가
 + Netcode 를 활용한 Mubliplay 기능 추가.
 
+### UI, UX 수정
++ UI 시인성을 올리고, 좀더 편한 UI를 구성한다.
+
 ---
+
+## Version History
++ ver 0.1.0 : 기본 게임 플레이 구성
++ ver 0.2.0 : 멀티 플레이 기능 추가
