@@ -2,7 +2,6 @@
 using PlayingCard.GamePlay.View.UI;
 using PlayingCard.LobbyManagement;
 using PlayingCard.Utilities.Net;
-using System;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -109,6 +108,11 @@ namespace PlayingCard.GamePlay.Presenter.Gamestate
             }
         }
 
+        /// <summary>
+        /// 로비에서 각 플에이어의 자리(Seat)를 갱신한다.
+        /// </summary>
+        /// <param name="state"></param>
+        /// <param name="seatIdx"></param>
         private void UpdateSeatState(LobbyManager.SeatState state, int seatIdx = -1)
         {
             if (state != LobbyManager.SeatState.Inactive)

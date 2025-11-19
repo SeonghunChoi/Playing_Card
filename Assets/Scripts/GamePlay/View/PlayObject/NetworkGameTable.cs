@@ -27,29 +27,71 @@ namespace PlayingCard.GamePlay.View.PlayObject
     {
         const float CardSpace = 1.8f;
 
+        /// <summary>
+        /// 테이블에 커뮤니티 카드들을 놓을 컨테이너
+        /// </summary>
         [SerializeField]
         Transform trComunityPoint;
 
+        /// <summary>
+        /// 최소 Raise 금액
+        /// </summary>
         ulong MinRaise => game.Rule.MinRaise;
 
+        /// <summary>
+        /// 선택한 게임 정보
+        /// </summary>
         Game game;
         ConnectionManager connectionManager;
 
         /// <summary>
-        /// 게임에서 사용할 모든 카드
+        /// 현재 라운드 딜러를 맏을 유저의 idx
         /// </summary>
         NetworkVariable<int> dealerIdx = new NetworkVariable<int>();
+        /// <summary>
+        /// 이번 게임 smallBlind 유저의 idx
+        /// </summary>
         NetworkVariable<int> smallBlindIdx = new NetworkVariable<int>();
+        /// <summary>
+        /// 이번 게임 bigBlind 유저의 idx
+        /// </summary>
         NetworkVariable<int> bigBlindIdx = new NetworkVariable<int>();
+        /// <summary>
+        /// 현재 라운드 턴이 돌아온 유저의 idx
+        /// </summary>
         NetworkVariable<int> currentPlayerIdx = new NetworkVariable<int>();
+        /// <summary>
+        /// 최고 높은 bet 금액
+        /// </summary>
         NetworkVariable<ulong> lastMaxBet = new NetworkVariable<ulong>();
+        /// <summary>
+        /// Pot 에 놓인 금액
+        /// </summary>
         NetworkVariable<ulong> pot = new NetworkVariable<ulong>();
+        /// <summary>
+        /// All in 발생 시 SidePot 금액
+        /// </summary>
         NetworkVariable<ulong> sidePot = new NetworkVariable<ulong>();
+        /// <summary>
+        /// 현재 라운드
+        /// </summary>
         NetworkVariable<int> round = new NetworkVariable<int>();
+        /// <summary>
+        /// 직전 플레이어의 Turn Action 의 Betting 종류
+        /// </summary>
         NetworkVariable<Betting> lastBetting = new NetworkVariable<Betting>();
 
+        /// <summary>
+        /// 게임에서 사용할 모든 카드
+        /// </summary>
         List<Card> cards = new List<Card>();
+        /// <summary>
+        /// 게임에서 사용할 모든 카드를 섞어서 카드들을 넣어놓은 큐, 순석대로 뽑아 쓴다.
+        /// </summary>
         Queue<Card> deck = new Queue<Card>();
+        /// <summary>
+        /// 홀덤에서 공유하는 커뮤니티 카드 정보
+        /// </summary>
         List<Card> communityCard;
         PlayRound currentRound;
 
@@ -68,6 +110,7 @@ namespace PlayingCard.GamePlay.View.PlayObject
 
         private IObjectResolver resolver;
         private IDisposable turnStartDisposable;
+        private ISubscriber<TurnStartMessage> turnStartSubscriber;
         private IDisposable drawResultDisposable;
         private IPublisher<DrawCardSelectMessage> drawCardSelectPublisher;
         private Dictionary<string, GameObject> cardDict;
@@ -118,7 +161,7 @@ namespace PlayingCard.GamePlay.View.PlayObject
 
             this.resolver = resolver;
             this.cardDict = cardDict;
-            turnStartDisposable = turnStartSubscriber.Subscribe(TurnStart);
+            this.turnStartSubscriber = turnStartSubscriber;
             drawResultDisposable = drawResultSubscriber.Subscribe(DrawResult);
             this.drawCardSelectPublisher = drawCardSelectPublisher;
         }
@@ -143,6 +186,7 @@ namespace PlayingCard.GamePlay.View.PlayObject
             turnActionSubscriber.Subscribe(TurnAction).AddTo(bagBuilder);
             drawCardSelectSubscriber.Subscribe(DrawCardSelect).AddTo(bagBuilder);
             drawCardsSubscriber.Subscribe(DrawCards).AddTo(bagBuilder);
+            turnStartSubscriber.Subscribe(TurnStart).AddTo(bagBuilder);
 
             subscription = bagBuilder.Build();
                         
@@ -222,7 +266,7 @@ namespace PlayingCard.GamePlay.View.PlayObject
         }
 
         /// <summary>
-        /// Deck 에 맞춰 카드들을 생성한다.
+        /// Deck 정보에 맞춰 카드들을 생성한다.
         /// </summary>
         public void InitGame()
         {
@@ -263,6 +307,9 @@ namespace PlayingCard.GamePlay.View.PlayObject
             }
         }
 
+        /// <summary>
+        /// 게임 테이블 정보는 서버에서만 관리하므로 서버에서 초기화 한다.
+        /// </summary>
         [Rpc(SendTo.Server)]
         public void ResetTableRpc()
         {
@@ -293,15 +340,20 @@ namespace PlayingCard.GamePlay.View.PlayObject
             ApplyResetResultRpc();
         }
 
+        /// <summary>
+        /// 현제 라운드 정보를 지정한다.
+        /// </summary>
         void SetCurrentRound()
         {
-            Debug.Log($"SetCurrentRound - Rounds.Count:{game.Rule.Rounds.Count} > Round:{round.Value - 1}");
             if (game.Rule.Rounds.Count > round.Value - 1)
                 currentRound = new PlayRound(game.Rule.Rounds[round.Value - 1]);
             else
                 currentRound = null;
         }
 
+        /// <summary>
+        /// 카드를 뽑아 사용할 덱을 만든다.
+        /// </summary>
         void MakeDeck()
         {
             deck.Clear();
@@ -311,12 +363,19 @@ namespace PlayingCard.GamePlay.View.PlayObject
             }
         }
 
+        /// <summary>
+        /// 테이블 초기화 한 정보를 각 클라이언트에게도 저장한다.
+        /// </summary>
         [Rpc(SendTo.ClientsAndHost)]
         public void ApplyResetResultRpc()
         {
+            // 이번 라운드 정보를 지정한다.
             SetCurrentRound();
         }
 
+        /// <summary>
+        /// 이번 라운드를 진행한다.
+        /// </summary>
         [Rpc(SendTo.Server)]
         public void PlayRoundRpc()
         {
@@ -329,11 +388,10 @@ namespace PlayingCard.GamePlay.View.PlayObject
 
             switch (currentRound.RoundState)
             {
-                // 카드를 나눠준다.
                 case RoundState.Deal:
                     {
-                        SetRoleRpc();
-                        DealCardRpc();
+                        SetRoleRpc();                
+                        DealCardRpc();// 카드를 나눠준다.
                     }
                     break;
                 case RoundState.Blind:
@@ -592,6 +650,13 @@ namespace PlayingCard.GamePlay.View.PlayObject
             TurnStartRpc(player.OwnerClientId, MinRaise, roundName, pot.Value);
         }
 
+        /// <summary>
+        /// 클라이언트 들에게 턴 시작 정보를 알려준다.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="minRaise"></param>
+        /// <param name="roundName"></param>
+        /// <param name="pot"></param>
         [Rpc(SendTo.ClientsAndHost)]
         void TurnStartRpc(ulong clientId, ulong minRaise, string roundName, ulong pot)
         {
@@ -636,6 +701,11 @@ namespace PlayingCard.GamePlay.View.PlayObject
             var players = ServerPlayerManager.GetServerPlayers();
         }
 
+        /// <summary>
+        /// 모든 클라이언트에게 승자 정보를 알려준다.
+        /// </summary>
+        /// <param name="clinetId"></param>
+        /// <param name="winChips"></param>
         [Rpc(SendTo.ClientsAndHost)]
         void ApplyWinnerRpc(ulong clinetId, ulong winChips)
         {
@@ -646,6 +716,9 @@ namespace PlayingCard.GamePlay.View.PlayObject
             }
         }
 
+        /// <summary>
+        /// 라운드 종료를 처리한다.
+        /// </summary>
         [Rpc(SendTo.ClientsAndHost)]
         void ApplyRoundCompleteRpc()
         {
@@ -745,6 +818,9 @@ namespace PlayingCard.GamePlay.View.PlayObject
             }
         }
 
+        /// <summary>
+        /// 게임을 중간에 중지한다.
+        /// </summary>
         private void BreakGame()
         {
             var serverPlayers = ServerPlayerManager.GetServerPlayers();
@@ -759,6 +835,9 @@ namespace PlayingCard.GamePlay.View.PlayObject
             if (IsServer) PlayRoundRpc();
         }
 
+        /// <summary>
+        /// 게임 종료를 서버에 요청한다.
+        /// </summary>
         [Rpc(SendTo.Server)]
         private void EndGameRpc()
         {
@@ -791,6 +870,10 @@ namespace PlayingCard.GamePlay.View.PlayObject
             SceneLoaderWarpper.Instance.LoadScene(DefineScene.MAIN_MENU, useNetworkSceneManager: true);
         }
 
+        /// <summary>
+        /// 커뮤니티 카드 정보를 각 클라이언트에서 생성하도록 한다. (NetworkBehaviour 가 아님)
+        /// </summary>
+        /// <param name="serialiezed"></param>
         [Rpc(SendTo.ClientsAndHost)]
         private void DealCardRpc(string serialiezed)
         {
@@ -806,6 +889,11 @@ namespace PlayingCard.GamePlay.View.PlayObject
             SetCardPosition(trComunityPoint);
         }
 
+        /// <summary>
+        /// 각 플레이어에게 나눠준 정보를 각 클라이언트에서 생성하도록 한다. (NetworkBehaviour 가 아님)
+        /// </summary>
+        /// <param name="serialiezed"></param>
+        /// <param name="clientId"></param>
         [Rpc(SendTo.ClientsAndHost)]
         private void DealCardRpc(string serialiezed, ulong clientId)
         {
@@ -821,6 +909,12 @@ namespace PlayingCard.GamePlay.View.PlayObject
             clientPlayer.SetCardPosition();
         }
 
+        /// <summary>
+        /// turn action 을 서버에 요청한다.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="betting"></param>
+        /// <param name="bet"></param>
         [Rpc(SendTo.Server)]
         private void TurnActionRpc(ulong clientId, Betting betting, ulong bet)
         {
@@ -916,6 +1010,10 @@ namespace PlayingCard.GamePlay.View.PlayObject
             if (IsServer) RunBettingRpc();
         }
 
+        /// <summary>
+        /// 테이블을 정리한다.
+        /// </summary>
+        /// <param name="clientId"></param>
         [Rpc(SendTo.ClientsAndHost)]
         private void ClerTableRpc(ulong clientId)
         {

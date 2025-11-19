@@ -172,6 +172,11 @@ namespace PlayingCard.GamePlay.View.UI
         {
             ShowActionButtons(minRaise);
         }
+
+        /// <summary>
+        /// 플레이어의 상태에 따른 사용가능한 버튼을 보여준다.
+        /// </summary>
+        /// <param name="minRaise"></param>
         private void ShowActionButtons(ulong minRaise)
         {
             var clientId = NetworkManager.Singleton.LocalClientId;
@@ -193,6 +198,10 @@ namespace PlayingCard.GamePlay.View.UI
             buttonDraw.gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// 내 턴인 경우에만 작동하도록 한다.
+        /// </summary>
+        /// <param name="isMyturn"></param>
         private void SetButtonsInteraction(bool isMyturn)
         {
             buttonDraw.interactable = isMyturn;
@@ -330,6 +339,10 @@ namespace PlayingCard.GamePlay.View.UI
 
         }
 
+        /// <summary>
+        /// 게임 UI 갱신
+        /// </summary>
+        /// <param name="message"></param>
         private void ProcessGameRoomInfo(GameRoomInfoMessage message)
         {
             if (NetworkManager.Singleton.LocalClientId == message.ClientId)
