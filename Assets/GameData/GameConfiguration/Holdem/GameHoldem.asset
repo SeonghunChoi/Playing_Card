@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameHoldem
   m_EditorClassIdentifier: PlayingCard.GamePlay::PlayingCard.GamePlay.Configuration.Game
   GameId: 1
-  GameName: Poker
+  GameName: Holdem
   GameDescription: "\uD14D\uC0AC\uC2A4 \uD640\uB364"
   Deck: {fileID: 11400000, guid: afb56d15caabe2d4c9f63797eabfe940, type: 2}
   Rule: {fileID: 11400000, guid: 0514c15a6935eee4883e523445f07e48, type: 2}
