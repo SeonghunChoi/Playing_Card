@@ -1,0 +1,15 @@
+﻿<Solution>
+  <Project Path="PlayingCard.GamePlay.csproj" />
+  <Project Path="EnhancedScroller_asmdef.csproj" />
+  <Project Path="PlayingCard.Utilities.csproj" />
+  <Project Path="PlayingCard.ConnectionManagement.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="PlayingCard.ApplicationLifecycle.csproj" />
+  <Project Path="PlayingCard.LobbyManagement.csproj" />
+  <Project Path="PlayingCard.GamePlay.Model.Configuration.Define.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
+  <Project Path="PlayingCard.ApplicationLifecycle.Message.csproj" />
+  <Project Path="PlayingCard.Infrastructure.csproj" />
+  <Project Path="PlayingCard.Editor.csproj" />
+</Solution>
